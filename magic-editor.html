@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Edit any photo with Slora AI Magic Editor." />
+    <title>Magic Editor — Slora</title>
+    <link rel="icon" href="assets/imgPolygon3.svg" />
+    <link rel="stylesheet" href="tryon.css" />
+    <link rel="stylesheet" href="magic-editor.css" />
+    <link rel="stylesheet" href="header.css" />
+    <link rel="stylesheet" href="result-placeholder.css" />
+  </head>
+  <body class="magic-page">
+    <header class="tryon-hero" id="top">
+      <nav class="navbar" aria-label="Main navigation">
+        <a class="brand" href="index.html" aria-label="Back to Slora home"><span class="brand-art" aria-hidden="true"><img class="brand-group" src="assets/nav-group.svg" alt="" /><span class="brand-name"><img src="assets/nav-logo.svg" alt="" /><img class="brand-star-one" src="assets/nav-poly1.svg" alt="" /><img class="brand-star-three" src="assets/nav-poly3.svg" alt="" /></span><img class="brand-subtract" src="assets/nav-subtract.svg" alt="" /><img class="brand-star-two" src="assets/nav-poly1.svg" alt="" /><img class="brand-star-four" src="assets/nav-poly2.svg" alt="" /></span></a>
+        <div class="nav-actions"><button class="icon-btn" type="button" aria-label="Settings"><img src="assets/nav-gear.svg" alt="" /></button><button class="icon-btn" type="button" aria-label="Recent activity"><img src="assets/nav-timer.svg" alt="" /></button><button class="icon-btn" type="button" aria-label="Gifts"><img src="assets/nav-gift.svg" alt="" /></button><button class="icon-btn" type="button" aria-label="Notifications"><img src="assets/nav-bell.svg" alt="" /></button><a class="pill" href="#join"><img src="assets/nav-gift.svg" alt="" />JOIN BETA NOW</a><a class="pill" href="#editor"><img src="assets/nav-try.svg" alt="" />Try free</a></div>
+        <button class="menu" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      </nav>
+      <img class="hero-wordmark" src="assets/magic-hero-logo.svg" alt="Slora" />
+      <a class="hero-join pill" href="#join"><img src="assets/nav-gift.svg" alt="" /><span class="hero-join-label">JOIN BETA NOW</span></a>
+    </header>
+
+    <main>
+      <nav class="marquee" aria-label="Slora features"><div><a href="tryon.html">AI Try-on</a><i></i><a href="#editor" aria-current="page">Magic Editor</a><i></i><a href="tryon.html">TRY-ON</a><i></i><a href="ai-studio.html">AI STUDIO</a><i></i><span>AI Generation</span></div></nav>
+      <section class="tryon-section magic-section" id="editor">
+        <div class="section-title"><h1>Magic Editor</h1><p>Remove objects, replace backgrounds, change outfits or enhance every detail</p></div>
+        <div class="tryon-workspace">
+          <img class="workspace-bg" src="assets/magic-workspace-bg.svg" alt="" />
+          <div class="stars" aria-hidden="true"></div>
+          <div class="tryon-flow magic-flow">
+            <div class="tryon-inputs magic-inputs">
+              <label class="upload-card" for="editor-person-input"><img class="upload-bg" src="assets/magic-upload.png" alt="" /><img class="card-grid" src="assets/magic-card-grid.svg" alt="" /><span class="upload-content"><span class="upload-icon"><img src="assets/magic-upload-icon.svg" alt="" /></span><strong>Upload person</strong><small>jpeg, png formats up to 5Mb</small><span class="samples"><img src="assets/magic-person-1.png" alt="" /><img src="assets/magic-person-2.png" alt="" /><img src="assets/magic-person-3.png" alt="" /><img src="assets/magic-person-4.png" alt="" /></span></span></label>
+              <input class="visually-hidden" id="editor-person-input" type="file" accept="image/jpeg,image/png" />
+              <div class="prompt-box"><textarea aria-label="Magic Editor prompt" placeholder="prompt here"></textarea><div class="prompt-controls"><label>Size <select aria-label="Image size"><option>1:1</option><option>3:4</option><option>16:9</option></select></label><label>Quality <select aria-label="Image quality"><option>2</option><option>1</option><option>4</option></select></label></div></div>
+              <p class="upload-message" role="status" aria-live="polite"></p>
+              <button class="try-now" type="button"><img src="assets/magic-sparkle.svg" alt="" />TRY NOW</button>
+            </div>
+            <img class="connector" src="assets/magic-connector.svg" alt="Slora processes the edit" />
+            <div class="result magic-result result-panel is-loading" aria-busy="true" aria-live="polite">
+              <div class="result-skeleton" aria-label="Magic Editor result placeholder"><span class="skeleton-orb"></span><span class="skeleton-line skeleton-line-wide"></span><span class="skeleton-line"></span></div>
+              <img class="result-image" src="assets/magic-result.png" alt="Magic Editor result preview" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="showcase" id="showcase"><div class="showcase-head"><div><p class="eyebrow">CREATIVE SHOWCASE</p><h2>Explore what<br />you can create</h2></div><div><p>Discover the wonders of AI— you can create with just one photo.</p><div class="filters" role="group" aria-label="Filter gallery"><button class="active" data-filter="all" aria-pressed="true">ALL</button><button data-filter="try" aria-pressed="false">TRY-ON</button><button data-filter="editor" aria-pressed="false">EDITOR</button><button data-filter="studio" aria-pressed="false">AI STUDIO</button><button data-filter="lifestyle" aria-pressed="false">LIFESTYLE</button></div></div></div><div class="gallery" aria-live="polite"><figure class="g1" data-category="lifestyle"><img src="assets/imgRectangle3.png" alt="Woman posing on a motorcycle" /></figure><figure class="g2" data-category="try"><img src="assets/imgRectangle4.png" alt="Fashion portrait seated in a wicker chair" /></figure><figure class="g3" data-category="studio"><img src="assets/imgRectangle5.png" alt="Woman in a floral dress" /></figure><div class="stat"><strong>10k+</strong><span>BETA CREATORS</span></div><figure class="g4" data-category="try"><img src="assets/imgRectangle6.png" alt="AI fashion portrait" /></figure><figure class="g5" data-category="lifestyle"><img src="assets/imgRectangle7.png" alt="Streetwear portrait" /></figure><figure class="g6" data-category="editor"><img src="assets/imgRectangle8.png" alt="Studio portrait" /></figure><figure class="g7" data-category="try"><img src="assets/imgRectangle9.png" alt="AI swimwear portrait" /></figure></div></section>
+      <section class="cta" id="join"><div><p class="eyebrow">READY TO EXPLORE YOUR CREATIVITY?</p><h2>Everything AI Can Do for Your Photos</h2><p>Everything starts with a single photo.</p><div class="cta-actions"><a class="pill" href="#top"><img src="assets/cta-join.svg" alt="" />JOIN BETA NOW</a><a class="pill secondary" href="#editor"><img src="assets/cta-try.svg" alt="" />TRY NOW</a></div></div></section>
+    </main>
+    <footer><div class="footer-top"><div class="about"><a class="footer-logo" href="index.html">Slora <sup>AI</sup></a><p>Slora is a mobile-first AI image generation and editing app built for creators who need high-quality visuals fast.</p><div><a href="#">INSTAGRAM</a><a href="#">TWITTER</a><a href="#">YOUTUBE</a></div></div><div><h3>PRODUCT</h3><a href="index.html#features">Features</a><a href="#">Pricing</a><a href="#showcase">Gallery</a></div><div><h3>COMPANY</h3><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a></div><div><h3>LEGAL</h3><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Guidelines</a></div><span class="ai-mark">AI</span></div><div class="footer-bottom"><span>© 2026 Slora AI. All rights reserved.</span><span>MOBILE-FIRST AI GENERATION</span></div></footer>
+    <script src="magic-editor.js"></script>
+  </body>
+</html>

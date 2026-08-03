@@ -1,0 +1,17 @@
+.magic-page .tryon-hero{background-image:url("assets/magic-hero.png")}
+.magic-section .section-title h1{text-transform:none}
+.magic-section .tryon-workspace{height:930px;overflow:visible}
+.magic-flow{align-items:center}
+.magic-inputs{gap:16px}
+.prompt-box{width:370px;height:448px;display:flex;flex-direction:column;gap:8px;padding:8px 16px;border:1px solid var(--line);border-radius:32px;background:var(--paper);overflow:hidden}
+.prompt-box textarea{width:100%;min-height:0;flex:1;padding:0;border:0;outline:0;resize:none;background:transparent;color:var(--ink);font:300 16px/24px var(--sans)}
+.prompt-box textarea::placeholder{color:var(--line);opacity:1}
+.prompt-controls{display:flex;align-items:center;justify-content:center;gap:16px;height:40px;color:var(--sub);font-size:16px}
+.prompt-controls label{display:flex;align-items:center;gap:8px}
+.prompt-controls select{height:32px;padding:4px 7px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--sub);font-size:14px;outline:0}
+.magic-result{width:370px;height:827px;border-radius:16px}
+.magic-result .result-image{width:370px;height:827px;object-fit:cover}
+.magic-page .upload-message{margin-top:-12px}
+.magic-page .upload-message.success{color:#15803d}
+@media(max-width:1000px){.magic-section .tryon-workspace{height:auto;overflow:hidden}.magic-flow{align-items:center}.magic-result{width:min(370px,100%);height:auto;aspect-ratio:370/827}.magic-result .result-image{width:100%;height:100%}}
+@media(max-width:620px){.prompt-box{width:100%;height:390px}.prompt-controls{gap:10px;font-size:13px}.prompt-controls label{gap:5px}.magic-page .hero-wordmark{width:84%}}
