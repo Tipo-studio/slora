@@ -124,8 +124,8 @@ body:not(.magic-page) .tryon-hero{
   .tryon-hero .hero-join{top:calc(344px + min(85px,14.34vw))}
 }
 
-.site-footer{height:404px;padding:72px max(24px,calc((100% - 1200px)/2)) 48px;background:#fff;border-top:1px solid #e2e8f0;color:#080d14;font-family:"Poppins",Arial,sans-serif}
-.site-footer .footer-top{width:min(1200px,100%);height:167px;display:grid;grid-template-columns:1fr repeat(3,max-content);gap:80px;margin:0 auto 48px;padding:0}
+.site-footer{height:404px;padding:72px max(24px,calc((100% - 1920px)/2)) 48px;background:#fff;border-top:1px solid #e2e8f0;color:#080d14;font-family:"Poppins",Arial,sans-serif}
+.site-footer .footer-top{width:min(1920px,100%);height:167px;display:grid;grid-template-columns:1fr repeat(3,max-content);gap:80px;margin:0 auto 48px;padding:0}
 .site-footer .about{width:360px}
 .site-footer .footer-logo,.site-footer .footer-logo>span{position:relative;display:block;width:169px;height:35px}
 .site-footer .footer-logo img:first-child{position:absolute;left:0;top:0;width:35px;height:35px;filter:none}
@@ -135,7 +135,7 @@ body:not(.magic-page) .tryon-hero{
 .site-footer .about>div a{margin:0;color:#080d14;opacity:.8;font:400 12px/20px "Poppins",Arial,sans-serif}
 .site-footer .footer-top h3{margin:0 0 16px;color:#080d14;opacity:.6;font:500 12px/18px "Poppins",Arial,sans-serif}
 .site-footer .footer-top>div:not(.about) a{display:block;margin:0 0 16px;color:#080d14;opacity:.8;font:400 14px/24px "Poppins",Arial,sans-serif}
-.site-footer .footer-bottom{width:min(1200px,100%);display:flex;align-items:center;justify-content:space-between;margin:0 auto;padding-top:48px;border-top:1px solid #e2e8f0;color:#475569;font:400 12px/20px "Poppins",Arial,sans-serif}
+.site-footer .footer-bottom{width:min(1920px,100%);display:flex;align-items:center;justify-content:space-between;margin:0 auto;padding-top:48px;border-top:1px solid #e2e8f0;color:#475569;font:400 12px/20px "Poppins",Arial,sans-serif}
 .site-footer .footer-bottom span{opacity:.7}
 
 @media(max-width:1000px){
