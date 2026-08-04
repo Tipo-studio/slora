@@ -15,21 +15,15 @@
       <nav class="navbar" aria-label="Main navigation">
         <a class="brand" href="index.html" aria-label="Back to Slora home">
           <span class="brand-art" aria-hidden="true">
-            <img class="brand-group" src="assets/nav-group.svg" alt="" />
-            <span class="brand-name"><img src="assets/nav-logo.svg" alt="" /><img class="brand-star-one" src="assets/nav-poly1.svg" alt="" /><img class="brand-star-three" src="assets/nav-poly3.svg" alt="" /></span>
-            <img class="brand-subtract" src="assets/nav-subtract.svg" alt="" />
-            <img class="brand-star-two" src="assets/nav-poly1.svg" alt="" />
-            <img class="brand-star-four" src="assets/nav-poly2.svg" alt="" />
+            <img class="brand-mark" src="assets/slora-logo-mark.svg" alt="" />
+            <img class="brand-wordmark" src="assets/slora-logo-wordmark.svg" alt="" />
           </span>
         </a>
         <div class="nav-actions">
-          <button class="icon-btn" type="button" aria-label="Settings"><img src="assets/nav-gear.svg" alt="" /></button>
-          <button class="icon-btn" type="button" aria-label="Recent activity"><img src="assets/nav-timer.svg" alt="" /></button>
-          <button class="icon-btn" type="button" aria-label="Gifts"><img src="assets/nav-gift.svg" alt="" /></button>
-          <button class="icon-btn" type="button" aria-label="Notifications"><img src="assets/nav-bell.svg" alt="" /></button>
-          <a class="pill" href="#join"><img src="assets/nav-gift.svg" alt="" />JOIN BETA NOW</a>
-          <a class="pill" href="#try-on"><img src="assets/nav-try.svg" alt="" />Try free</a>
+          <a class="pill" href="#join"><span class="nav-btn-icon"><img src="assets/nav-gift.svg" alt="" /></span>JOIN BETA NOW</a>
+          <a class="pill" href="#try-on"><span class="nav-btn-icon"><img src="assets/nav-try.svg" alt="" /></span>TRY FREE</a>
         </div>
+        <button class="profile-avatar" type="button" aria-label="Profile" title="Profile"><img src="assets/profile-avatar.svg" alt="" /></button>
         <button class="menu" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
       </nav>
       <img class="hero-wordmark" src="assets/tryon-hero-logo.svg" alt="Try-on" />
@@ -72,9 +66,10 @@
               <button class="try-now" type="button"><img src="assets/tryon-sparkle.svg" alt="" />TRY NOW</button>
             </div>
             <img class="connector" src="assets/tryon-logo.svg" alt="Slora combines the uploads" />
-            <div class="result result-panel is-loading" aria-busy="true" aria-live="polite">
-              <div class="result-skeleton" aria-label="AI Try-on result placeholder"><span class="skeleton-orb"></span><span class="skeleton-line skeleton-line-wide"></span><span class="skeleton-line"></span></div>
-              <img class="result-image" src="assets/tryon-result.png" alt="AI Try-on result" /><img class="result-dots" src="assets/tryon-dots.svg" alt="" />
+            <div class="result result-panel has-default-placeholder" aria-busy="false" aria-live="polite">
+              <img class="result-placeholder-image" src="assets/tryon-result-placeholder.png" alt="AI Try-on default result placeholder" />
+              <div class="result-skeleton" aria-label="Generating AI Try-on result"><span class="skeleton-orb"></span><span class="skeleton-line skeleton-line-wide"></span><span class="skeleton-line"></span></div>
+              <img class="result-image" src="assets/tryon-result.png" alt="AI Try-on result preview" />
             </div>
           </div>
         </div>
@@ -100,10 +95,11 @@
       <section class="cta" id="join"><div><p class="eyebrow">READY TO EXPLORE YOUR CREATIVITY?</p><h2>Everything AI Can Do for Your Photos</h2><p>Everything starts with a single photo.</p><div class="cta-actions"><a class="pill" href="#top"><img src="assets/cta-join.svg" alt="" />JOIN BETA NOW</a><a class="pill secondary" href="#try-on"><img src="assets/cta-try.svg" alt="" />TRY NOW</a></div></div></section>
     </main>
 
-    <footer>
-      <div class="footer-top"><div class="about"><a class="footer-logo" href="index.html">Slora <sup>AI</sup></a><p>Slora is a mobile-first AI image generation and editing app built for creators who need high-quality visuals fast.</p><div><a href="#">INSTAGRAM</a><a href="#">TWITTER</a><a href="#">YOUTUBE</a></div></div><div><h3>PRODUCT</h3><a href="index.html#features">Features</a><a href="#">Pricing</a><a href="#showcase">Gallery</a></div><div><h3>COMPANY</h3><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a></div><div><h3>LEGAL</h3><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Guidelines</a></div><span class="ai-mark">AI</span></div>
-      <div class="footer-bottom"><span>© 2026 Slora AI. All rights reserved.</span><span>MOBILE-FIRST AI GENERATION</span></div>
+    <footer class="site-footer">
+      <div class="footer-top"><div class="about"><a class="footer-logo" href="index.html" aria-label="Slora home"><span aria-hidden="true"><img src="assets/slora-logo-mark.svg" alt="" /><img src="assets/slora-logo-wordmark.svg" alt="" /></span></a><p>Slora is a mobile-first AI image generation and editing app built for creators who need high-quality visuals fast.</p><div><a href="#">Telegram</a><a href="#">x.com</a><a href="#">discord</a></div></div><div><h3>Product</h3><a href="index.html#features">Features</a><a href="index.html#pricing">Pricing</a><a href="#showcase">Gallery</a></div><div><h3>Company</h3><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a></div><div><h3>Legal</h3><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Guidelines</a></div></div>
+      <div class="footer-bottom"><span>© 2026 Slora AI. All rights reserved.</span><span>Mobile-first AI generation</span></div>
     </footer>
+    <script src="script.js"></script>
     <script src="tryon.js"></script>
   </body>
 </html>

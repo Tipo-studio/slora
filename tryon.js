@@ -1,12 +1,3 @@
-const menu = document.querySelector('.menu');
-const navActions = document.querySelector('.nav-actions');
-
-menu?.addEventListener('click', () => {
-  const open = navActions.classList.toggle('open');
-  menu.setAttribute('aria-expanded', String(open));
-  menu.textContent = open ? '×' : '☰';
-});
-
 document.querySelector('.stars')?.replaceChildren(
   ...Array.from({ length: 25 }, () => {
     const star = document.createElement('img');
@@ -54,27 +45,7 @@ document.querySelector('.try-now')?.addEventListener('click', () => {
   }
 
   tryonResult?.classList.remove('is-loading');
+  tryonResult?.classList.add('has-result');
   tryonResult?.setAttribute('aria-busy', 'false');
   tryonResult?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-});
-
-const filterButtons = document.querySelectorAll('.filters button');
-const galleryItems = document.querySelectorAll('.gallery figure');
-const gallery = document.querySelector('.gallery');
-
-filterButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    const selected = button.dataset.filter;
-    if (selected === 'studio') {
-      window.location.href = 'ai-studio.html';
-      return;
-    }
-    filterButtons.forEach((item) => {
-      const active = item === button;
-      item.classList.toggle('active', active);
-      item.setAttribute('aria-pressed', String(active));
-    });
-    gallery.classList.toggle('is-filtered', selected !== 'all');
-    galleryItems.forEach((item) => item.classList.toggle('hidden', selected !== 'all' && item.dataset.category !== selected));
-  });
 });
