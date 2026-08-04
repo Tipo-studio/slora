@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="tryon.css" />
     <link rel="stylesheet" href="header.css" />
     <link rel="stylesheet" href="result-placeholder.css" />
+    <link rel="stylesheet" href="login-overlay.css" />
   </head>
   <body>
     <header class="tryon-hero" id="top">
@@ -20,14 +21,14 @@
           </span>
         </a>
         <div class="nav-actions">
-          <a class="pill" href="#join"><span class="nav-btn-icon"><img src="assets/nav-gift.svg" alt="" /></span>JOIN BETA NOW</a>
-          <a class="pill" href="#try-on"><span class="nav-btn-icon"><img src="assets/nav-try.svg" alt="" /></span>TRY FREE</a>
+          <a class="pill" href="#join" data-auth-trigger><span class="nav-btn-icon"><img src="assets/nav-gift.svg" alt="" /></span>JOIN BETA NOW</a>
+          <a class="pill" href="#try-on" data-auth-trigger><span class="nav-btn-icon"><img src="assets/nav-try.svg" alt="" /></span>TRY FREE</a>
         </div>
         <button class="profile-avatar" type="button" aria-label="Profile" title="Profile"><img src="assets/profile-avatar.svg" alt="" /></button>
         <button class="menu" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
       </nav>
       <img class="hero-wordmark" src="assets/tryon-hero-logo.svg" alt="Try-on" />
-      <a class="hero-join pill" href="#join"><img src="assets/nav-gift.svg" alt="" /><span class="hero-join-label">JOIN BETA NOW</span></a>
+      <a class="hero-join pill" href="#join" data-auth-trigger><img src="assets/nav-gift.svg" alt="" /><span class="hero-join-label">JOIN BETA NOW</span></a>
     </header>
 
     <main>
@@ -92,7 +93,7 @@
         </div>
       </section>
 
-      <section class="cta" id="join"><div><p class="eyebrow">READY TO EXPLORE YOUR CREATIVITY?</p><h2>Everything AI Can Do for Your Photos</h2><p>Everything starts with a single photo.</p><div class="cta-actions"><a class="pill" href="#top"><img src="assets/cta-join.svg" alt="" />JOIN BETA NOW</a><a class="pill secondary" href="#try-on"><img src="assets/cta-try.svg" alt="" />TRY NOW</a></div></div></section>
+      <section class="cta" id="join"><div><p class="eyebrow">READY TO EXPLORE YOUR CREATIVITY?</p><h2>Everything AI Can Do for Your Photos</h2><p>Everything starts with a single photo.</p><div class="cta-actions"><a class="pill" href="#top" data-auth-trigger><img src="assets/cta-join.svg" alt="" />JOIN BETA NOW</a><a class="pill secondary" href="#try-on" data-auth-trigger><img src="assets/cta-try.svg" alt="" />TRY NOW</a></div></div></section>
     </main>
 
     <footer class="site-footer">

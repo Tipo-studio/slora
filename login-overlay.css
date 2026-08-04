@@ -1,0 +1,36 @@
+/* Shared Figma node 11731:14209 login overlay */
+body.login-open{overflow:hidden}
+.login-overlay[hidden]{display:none}
+.login-overlay{position:fixed;z-index:1000;inset:0;display:grid;place-items:center;padding:24px;font-family:"Poppins",Arial,sans-serif}
+.login-backdrop{position:absolute;inset:0;background:rgba(8,13,20,.72);backdrop-filter:blur(6px)}
+.login-dialog{position:relative;z-index:1;width:min(1157px,calc(100vw - 48px));height:min(683px,calc(100vh - 48px));display:grid;grid-template-columns:48.92% 51.08%;overflow:hidden;border-radius:16px;background:#f8fafc;box-shadow:0 28px 80px rgba(8,13,20,.34);outline:0}
+.login-visual{padding:24px;background:#1e293b}
+.login-visual img{display:block;width:100%;height:100%;object-fit:cover;border-radius:16px}
+.login-panel{position:relative;overflow-x:hidden;overflow-y:auto;background:#f8fafc}
+.login-panel-grid{position:absolute;z-index:0;left:0;top:-47px;width:100%;height:356px;object-fit:fill;pointer-events:none}
+.login-close{position:absolute;z-index:3;right:16px;top:16px;width:48px;height:48px;display:grid;place-items:center;padding:0;border:1px solid #cbd5e1;border-radius:12px;background:transparent;cursor:pointer}
+.login-close img{display:block;width:15px;height:15px}
+.login-close:hover{background:#fff}
+.login-content{position:relative;z-index:1;width:306px;height:100%;min-height:683px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;margin:auto;padding:64px 0 16px}
+.login-heading{width:100%;display:flex;flex-direction:column;align-items:center;gap:16px}
+.login-logo{position:relative;display:block;width:169px;height:35px}
+.login-logo img:first-child{position:absolute;left:0;top:0;width:35px;height:35px}
+.login-logo img:last-child{position:absolute;left:41.03px;top:6px;width:122.295px;height:28.001px;filter:brightness(0) saturate(100%)}
+.login-heading h2{width:100%;height:20px;margin:0;color:#475569;font:300 14px/24px "Poppins",Arial,sans-serif;text-align:center}
+.login-form{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:16px}
+.login-form button,.login-form input{width:100%;border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#080d14;font-family:"Poppins",Arial,sans-serif;font-weight:300}
+.login-google{height:42px;display:flex;align-items:center;gap:8px;padding:8px 22px;font-size:16px;line-height:24px;cursor:pointer}
+.login-google img{width:24px;height:24px;flex:0 0 24px}
+.login-or{height:20px;color:#080d14;font:300 16px/24px "Poppins",Arial,sans-serif;text-align:center}
+.login-email-label{color:#080d14;font:400 16px/24px "Overlock",cursive;text-align:left}
+.login-form input,.login-code{height:40px;padding:8px 16px;font-size:16px;line-height:24px;text-align:left}
+.login-form input::placeholder{color:#cbd5e1;opacity:1}
+.login-code{color:#cbd5e1!important;cursor:pointer}
+.login-code:not(:disabled):hover,.login-google:hover{background:#fff;border-color:#94a3b8}
+.login-submit{height:40px;padding:4px 16px!important;border-color:#22c55e!important;background:#22c55e!important;color:#fff!important;font-size:14px;line-height:24px;cursor:pointer;box-shadow:0 3px 4px -1px #22c55e,0 0 0 1px #22c55e,inset 0 1px 0 #22c55e}
+.login-submit:hover{background:#16a34a!important}
+.login-status{min-height:14px;margin:-8px 0 -6px;color:#475569;font:400 11px/14px "Poppins",Arial,sans-serif;text-align:center}
+.login-legal{width:100%;margin:0;padding:8px;color:#475569;font:400 10px/14px "Poppins",Arial,sans-serif;text-align:center}
+.login-legal a{text-decoration:underline;text-underline-offset:2px}
+@media(max-width:900px){.login-overlay{padding:18px}.login-dialog{width:min(591px,calc(100vw - 36px));grid-template-columns:1fr}.login-visual{display:none}}
+@media(max-width:420px){.login-overlay{padding:0}.login-dialog{width:100vw;height:100dvh;border-radius:0}.login-content{width:min(306px,calc(100% - 40px));padding-top:82px}.login-panel-grid{top:-20px}}
