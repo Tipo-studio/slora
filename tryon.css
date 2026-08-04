@@ -7,3 +7,92 @@
 
 /* Keep the product pages aligned with the shared Poppins UI typography. */
 :root{--sans:"Poppins",Arial,Helvetica,sans-serif}
+
+/* Fluid product layouts: stack before the fixed-width canvas can clip. */
+html,body{max-width:100%;overflow-x:clip}
+.filters button{min-height:40px;padding-inline:16px}
+@media(max-width:1200px){
+  .tryon-workspace,.studio-section .tryon-workspace,.magic-section .tryon-workspace{height:auto;min-height:0;padding:50px 18px;overflow:hidden;background:#f8fafc}
+  .workspace-bg{object-fit:cover;opacity:.55}
+  .tryon-flow,.studio-flow,.magic-flow{position:relative;left:auto;top:auto;height:auto;grid-template-columns:1fr;justify-items:center;gap:28px}
+  .connector{transform:rotate(90deg)}
+  .stars,.studio-section .stars{left:4%;width:92%;height:480px}
+}
+@media(min-width:621px) and (max-width:760px){
+  .showcase{padding-inline:18px}
+  .showcase-head{grid-template-columns:1fr;gap:28px}
+  .gallery,.gallery.is-filtered{height:auto;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:360px}
+  .gallery figure,.gallery.is-filtered figure{grid-area:auto!important}
+  .gallery .stat{min-height:160px}
+}
+@media(max-width:620px){
+  .tryon-section{padding-top:56px}
+  .section-title{padding-inline:8px}
+  .section-title h1{font-size:clamp(34px,10.5vw,40px);overflow-wrap:anywhere}
+  .showcase,.cta{padding-block:72px}
+  .showcase{padding-inline:16px}
+  .showcase h2,.cta h2{font-size:clamp(36px,11vw,42px)}
+  .gallery,.gallery.is-filtered{grid-auto-rows:clamp(340px,120vw,430px)}
+  .gallery:not(.is-filtered)>figure,.gallery:not(.is-filtered)>.stat,
+  .gallery.is-filtered>figure{grid-area:auto!important}
+  .cta{padding-inline:16px}
+  .cta .pill{width:min(100%,280px);min-height:52px}
+}
+@media(max-width:380px){
+  .tryon-workspace,.studio-section .tryon-workspace,.magic-section .tryon-workspace{padding-inline:6px}
+  .upload-content{inset:7% 5%;gap:6px}
+  .upload-icon{width:62px;height:62px}
+  .upload-content small{font-size:10px;white-space:normal;text-align:center}
+  .samples{height:52px}
+  .samples img{height:52px;padding:5px}
+  .prompt-controls{flex-wrap:wrap;height:auto;min-height:40px}
+  .footer-top{grid-template-columns:1fr;gap:28px}
+  .about{grid-column:auto}
+  .footer-bottom{flex-direction:column;align-items:flex-start;gap:8px}
+  .footer-bottom span:last-child{text-align:left}
+}
+
+/* Gallery cards use the available width at every non-mobile size. */
+.gallery figure,.gallery .stat{min-width:0}
+.gallery img{max-width:100%}
+@media(min-width:761px){
+  .showcase .gallery:not(.is-filtered){
+    height:clamp(680px,52vw,960px);
+    grid-template-rows:repeat(4,minmax(0,1fr));
+  }
+  .showcase .gallery.is-filtered{
+    grid-auto-rows:clamp(360px,34vw,500px);
+  }
+}
+@media(max-width:760px){
+  .showcase .gallery{width:100%;margin-inline:auto}
+  .showcase .gallery figure,.showcase .gallery .stat{min-width:0}
+}
+@media(max-width:760px){
+  .showcase .gallery:not(.is-filtered),.showcase .gallery.is-filtered{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:none!important;
+    grid-auto-rows:clamp(300px,52vw,380px)!important;
+  }
+  .showcase .gallery:not(.is-filtered)>figure,.showcase .gallery:not(.is-filtered)>.stat,
+  .showcase .gallery.is-filtered>figure{grid-area:auto!important}
+}
+@media(max-width:620px){
+  .showcase .gallery:not(.is-filtered),.showcase .gallery.is-filtered{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-rows:clamp(340px,120vw,430px)!important;
+  }
+}
+
+/* Full-bleed backgrounds with a shared 1440px inner content rail. */
+@media(min-width:901px){
+  .tryon-section{padding-inline:max(24px,calc((100% - 1440px)/2))}
+  .tryon-section>.section-title,.tryon-section>.tryon-workspace,
+  .showcase-head,.showcase>.gallery,.cta>div,.footer-top,.footer-bottom{
+    width:min(1440px,100%);
+    max-width:1440px;
+    margin-inline:auto;
+  }
+  .showcase{padding-inline:max(24px,calc((100% - 1440px)/2))}
+  footer{padding-inline:max(24px,calc((100% - 1440px)/2))}
+}

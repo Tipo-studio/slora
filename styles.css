@@ -26,6 +26,7 @@
 .try-on-gallery img:first-child{grid-row:1/3}
 
 @media(max-width:900px){.tool-panel-inner{grid-template-columns:1fr;gap:22px;padding-inline:18px}.try-on-copy{padding:12px 6px}.try-on-copy h3{font-size:36px}.try-on-gallery{height:360px}}
+
 @media(max-width:560px){.tool-trigger.tool-toggle{min-height:112px;padding-inline:12px}.tool-trigger.tool-toggle:hover,.tool-trigger.tool-toggle:focus-visible{padding-left:18px}.tool-panel-inner{padding:2px 12px 28px}.try-on-copy h3{font-size:31px}.try-on-gallery{height:300px;grid-template-columns:1fr 1fr}.try-on-gallery img{border-radius:9px}.try-on-tags{margin-block:22px}}
 
 /* Showcase filter states */
@@ -281,4 +282,87 @@ body.login-open{overflow:hidden}
   .login-dialog{width:100vw;height:100dvh;border-radius:0}
   .login-content{width:min(306px,calc(100% - 40px));padding-top:82px}
   .login-panel-grid{top:-20px}
+}
+
+/* Final responsive pass for narrow phones and intermediate tablets. */
+html,body{max-width:100%;overflow-x:clip}
+.filters button{min-height:40px;padding-inline:16px}
+@media(min-width:561px) and (max-width:760px){
+  .showcase .section-head.split{grid-template-columns:1fr;gap:28px}
+  .gallery,.gallery.is-filtered{grid-auto-rows:320px}
+}
+@media(max-width:560px){
+  .hero-logo{width:min(92%,498px);height:auto}
+  .hero h1{width:calc(100% - 36px);font-size:clamp(36px,13vw,48px)}
+  .hero-buttons{left:18px;right:18px;justify-content:flex-start;gap:8px}
+  .hero-buttons .pill{padding-inline:16px}
+  .features.section.shell,.showcase.section.shell,.tools.section{padding-inline:16px}
+  .features .section-head h2,.tools .tools-head h2,.showcase h2,.cta h2{font-size:clamp(36px,12vw,42px)}
+  .gallery,.gallery.is-filtered{grid-auto-rows:clamp(340px,125vw,460px)}
+  .gallery:not(.is-filtered)>figure,.gallery:not(.is-filtered)>.stat,
+  .gallery.is-filtered>figure{grid-area:auto!important}
+  .cta-actions{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .cta-actions .cta-button{width:min(100%,280px);min-height:52px;margin:0}
+}
+@media(max-width:380px){
+  .footer-grid{grid-template-columns:1fr;gap:28px}
+  .footer-about{grid-column:auto}
+  .copyright{flex-direction:column;align-items:flex-start;gap:8px}
+  .copyright span:last-child{text-align:left}
+}
+@media(max-height:720px){
+  .login-dialog{height:calc(100dvh - 24px)}
+  .login-content{min-height:640px;padding-top:72px}
+}
+@media(max-width:420px) and (max-height:720px){
+  .login-dialog{height:100dvh}
+  .login-content{min-height:620px;padding-top:72px}
+}
+
+/* Gallery layout: keep the collage fluid on desktop while retaining the
+   intentional portrait/landscape composition. */
+@media(min-width:901px){
+  .showcase .gallery:not(.is-filtered){
+    position:static;
+    display:grid;
+    width:min(1440px,100%);
+    height:auto;
+    margin-inline:auto;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-template-rows:clamp(240px,21.5vw,310px) clamp(220px,21.5vw,310px) clamp(280px,27.8vw,400px);
+    gap:4px;
+  }
+  .showcase .gallery:not(.is-filtered) figure,
+  .showcase .gallery:not(.is-filtered) .stat{
+    position:static;
+    width:auto;
+    height:auto;
+    min-width:0;
+  }
+  .showcase .gallery:not(.is-filtered) .g1{grid-area:1/1/3/2}
+  .showcase .gallery:not(.is-filtered) .g2{grid-area:1/2/3/3}
+  .showcase .gallery:not(.is-filtered) .g3{grid-area:1/3/2/5}
+  .showcase .gallery:not(.is-filtered) .stat{grid-area:2/3/3/5}
+  .showcase .gallery:not(.is-filtered) .g4{grid-area:3/1/4/2}
+  .showcase .gallery:not(.is-filtered) .g5{grid-area:3/2/4/3}
+  .showcase .gallery:not(.is-filtered) .g6{grid-area:3/3/4/4}
+  .showcase .gallery:not(.is-filtered) .g7{grid-area:3/4/4/5}
+  .showcase .gallery.is-filtered{
+    width:min(1440px,100%);
+    margin-inline:auto;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-auto-rows:clamp(360px,34vw,500px);
+  }
+}
+
+/* Keep wide-page content on a consistent 1440px reading rail. Section
+   backgrounds remain full bleed; only their inner content is constrained. */
+@media(min-width:901px){
+  .features .section-head,.features .feature-grid,
+  .tools .narrow,.showcase .section-head,.showcase .gallery,
+  .cta .cta-inner,.footer-grid,.copyright{
+    width:min(1440px,100%);
+    max-width:1440px;
+    margin-inline:auto;
+  }
 }

@@ -153,3 +153,31 @@ body:not(.magic-page) .tryon-hero{
 }
 
 @media(prefers-reduced-motion:reduce){.navbar *{transition:none!important}}
+
+/* Responsive hardening shared by every page. */
+html,body{max-width:100%;overflow-x:clip}
+@media(max-width:620px){
+  .navbar .nav-actions.open{left:18px;right:18px;width:auto;max-width:none;justify-content:stretch}
+  .navbar .nav-actions.open .pill{width:100%;min-height:44px}
+  .site-footer .footer-top{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:380px){
+  .navbar{padding-inline:12px;gap:6px}
+  .navbar .brand{width:140px;flex-basis:140px}
+  .navbar .brand-art{transform:scale(.82)}
+  .navbar .profile-avatar{width:40px;height:40px;flex-basis:40px}
+  .navbar .menu{width:42px;height:44px}
+  .navbar .nav-actions.open{left:12px;right:12px;max-width:none}
+  .site-footer{padding-inline:16px}
+  .site-footer .footer-top{grid-template-columns:1fr;gap:28px}
+  .site-footer .about{grid-column:auto}
+  .site-footer .footer-bottom{flex-direction:column;align-items:flex-start;gap:8px}
+  .site-footer .footer-bottom span:last-child{text-align:left}
+}
+@media(min-width:901px){
+  .site-footer .footer-top,.site-footer .footer-bottom{
+    width:min(1440px,100%);
+    max-width:1440px;
+    margin-inline:auto;
+  }
+}
