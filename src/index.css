@@ -652,6 +652,11 @@ button, input, textarea { font: inherit; }
   object-fit: fill !important;
   transform: none;
 }
+.tryon-genimg-placeholder.has-uploaded-image {
+  object-fit: cover !important;
+  filter: blur(12px) saturate(.85) brightness(.82);
+  transform: scale(1.06);
+}
 .tryon-phone-frame.is-loading {
   --loading-border-radius: 24px;
   --loading-border-color: rgba(148, 163, 184, .26);

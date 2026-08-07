@@ -28,17 +28,9 @@ function Corner({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) {
   return <svg aria-hidden="true" className={`absolute ${place[position]}`} width="var(--corner)" height="var(--corner)" viewBox="0 0 12 12" fill="none"><path d={paths[position]} stroke="currentColor" strokeWidth="1.5" /></svg>
 }
 
-function TryOnUploadCard({ label, samples }: { label: string; samples: readonly string[] }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-
-  useEffect(() => () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-  }, [previewUrl])
-
+function TryOnUploadCard({ label, samples, previewUrl, onPreviewChange }: { label: string; samples: readonly string[]; previewUrl: string | null; onPreviewChange: (file: File | null) => void }) {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    setPreviewUrl(URL.createObjectURL(file))
+    onPreviewChange(event.target.files?.[0] ?? null)
   }
 
   return <label className={`tryon-upload-card ${previewUrl ? 'has-preview' : ''}`}>
@@ -66,13 +58,30 @@ function MagicPromptCard() {
 function TryOnSection({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
   const [activeTool, setActiveTool] = useState<TryOnTool>('try-on')
   const [isTryOnLoading, setIsTryOnLoading] = useState(false)
+  const [personPreviewUrl, setPersonPreviewUrl] = useState<string | null>(null)
+  const [clothesPreviewUrl, setClothesPreviewUrl] = useState<string | null>(null)
+  const previewUrlsRef = useRef({ person: null as string | null, clothes: null as string | null })
   const activeToolConfig = TRYON_TOOLS.find(({ id }) => id === activeTool) ?? TRYON_TOOLS[0]
+  const updatePreview = (type: 'person' | 'clothes', file: File | null) => {
+    const currentUrl = previewUrlsRef.current[type]
+    if (currentUrl) URL.revokeObjectURL(currentUrl)
+    const nextUrl = file ? URL.createObjectURL(file) : null
+    previewUrlsRef.current[type] = nextUrl
+    if (type === 'person') setPersonPreviewUrl(nextUrl)
+    else setClothesPreviewUrl(nextUrl)
+  }
+  useEffect(() => () => {
+    Object.values(previewUrlsRef.current).forEach((url) => {
+      if (url) URL.revokeObjectURL(url)
+    })
+  }, [])
   const selectTool = (tool: TryOnTool) => {
     setActiveTool(tool)
     setIsTryOnLoading(false)
   }
   const personSamples = ['/images/tryon/person-1.png', '/images/tryon/person-2.png', '/images/tryon/person-3.png', '/images/tryon/person-4.png'] as const
   const clothesSamples = ['/images/tryon/clothes-1.png', '/images/tryon/clothes-2.png', '/images/tryon/clothes-3.png', '/images/tryon/clothes-4.png'] as const
+  const loadingPreviewUrl = personPreviewUrl ?? clothesPreviewUrl
 
   return <section ref={sectionRef} id="tryon" className="tryon-screen relative z-10 min-h-screen snap-start" aria-label="Try-on tools">
     <img className="tryon-background" src="/images/tryon/background.png" alt="" aria-hidden="true" />
@@ -86,15 +95,15 @@ function TryOnSection({ sectionRef }: { sectionRef: RefObject<HTMLElement | null
       <div className="tryon-controls">
         <div className={`tryon-upload-stack ${activeTool === 'ai-studio' ? 'is-ai-studio' : ''}`}>
           {activeTool === 'ai-studio' ? <MagicPromptCard /> : <>
-            <TryOnUploadCard label="Upload person" samples={personSamples} />
-            {activeTool === 'magic-editor' ? <MagicPromptCard /> : <TryOnUploadCard label="Upload Cloths" samples={clothesSamples} />}
+            <TryOnUploadCard label="Upload person" samples={personSamples} previewUrl={personPreviewUrl} onPreviewChange={(file) => updatePreview('person', file)} />
+            {activeTool === 'magic-editor' ? <MagicPromptCard /> : <TryOnUploadCard label="Upload Cloths" samples={clothesSamples} previewUrl={clothesPreviewUrl} onPreviewChange={(file) => updatePreview('clothes', file)} />}
           </>}
           <button type="button" className="tryon-cta button-primary" onClick={() => setIsTryOnLoading(true)} disabled={isTryOnLoading}><img src="/images/tryon/try-now-icon.svg" alt="" aria-hidden="true" />TRY NOW</button>
         </div>
       </div>
       <div className="tryon-preview" aria-label="Try-on result preview">
         <div key={`${activeTool}-${isTryOnLoading ? 'loading' : 'default'}`} className={`tryon-phone-frame ${isTryOnLoading ? 'is-loading' : ''}`} data-figma-node-id={isTryOnLoading ? '11790:1568' : '11787:1320'} aria-label={isTryOnLoading ? 'Generating try-on image' : undefined}>
-          {isTryOnLoading ? <img key="loading" className="tryon-genimg-placeholder" src="/images/tryon/genimg-loading.svg" alt="" aria-hidden="true" /> : <img key="default" src="/images/tryon/phone-frame.svg" alt="" aria-hidden="true" />}
+          {isTryOnLoading ? <img key="loading" className={`tryon-genimg-placeholder ${loadingPreviewUrl ? 'has-uploaded-image' : ''}`} src={loadingPreviewUrl ?? '/images/tryon/genimg-loading.svg'} alt="" aria-hidden="true" /> : <img key="default" src="/images/tryon/phone-frame.svg" alt="" aria-hidden="true" />}
         </div>
       </div>
       <div className="tryon-model-illustration" aria-hidden="true">
