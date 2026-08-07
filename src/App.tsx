@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from 'react'
 import { UserRound } from 'lucide-react'
 
 // User-supplied hero images: base layer and cursor-revealed layer.
@@ -10,6 +10,13 @@ const CORE_VIDEO_SOURCES = [
   '/images/party-video.mp4',
 ] as const
 const TRY_YOUR_IDEA_IMAGE = '/images/try-your-idea-default.png'
+const TRYON_TOOLS = [
+  { id: 'try-on', label: 'Try-on', description: 'See yourself wearing dresses, streetwear, bikinis, formal wear and more.' },
+  { id: 'magic-editor', label: 'Magic editor', description: 'Remove objects, replace backgrounds, change outfits or enhance every detail' },
+  { id: 'ai-studio', label: 'AI studio', description: 'See yourself wearing dresses, streetwear, bikinis, formal wear and more.' },
+] as const
+
+type TryOnTool = typeof TRYON_TOOLS[number]['id']
 
 
 function Corner({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) {
@@ -22,41 +29,76 @@ function Corner({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) {
 }
 
 function TryOnUploadCard({ label, samples }: { label: string; samples: readonly string[] }) {
-  return <label className="tryon-upload-card">
-    <input type="file" accept="image/png,image/jpeg" className="tryon-file-input" />
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  useEffect(() => () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+  }, [previewUrl])
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  return <label className={`tryon-upload-card ${previewUrl ? 'has-preview' : ''}`}>
+    <input type="file" accept="image/png,image/jpeg" className="tryon-file-input" onChange={handleFileChange} />
     <img className="tryon-upload-grid" src="/images/tryon/upload-grid.svg" alt="" aria-hidden="true" />
+    {previewUrl && <img className="tryon-upload-preview" src={previewUrl} alt={`${label} preview`} />}
     <div className="tryon-upload-content">
-      <span className="tryon-upload-icon"><img src="/images/tryon/image-icon.svg" alt="" aria-hidden="true" /></span>
-      <span className="tryon-upload-title">{label}</span>
-      <span className="tryon-upload-note">jpeg, png formats up to 5Mb</span>
-      <span className="tryon-samples">{samples.map((sample) => <img key={sample} src={sample} alt="" />)}</span>
+      {!previewUrl && <><span className="tryon-upload-icon"><img src="/images/tryon/image-icon.svg" alt="" aria-hidden="true" /></span><span className="tryon-upload-note">jpeg, png formats up to 5Mb</span><span className="tryon-samples">{samples.map((sample) => <img key={sample} src={sample} alt="" />)}</span></>}
+      <span className="tryon-upload-title">{previewUrl ? 'Change image' : label}</span>
     </div>
   </label>
 }
 
+function MagicPromptCard() {
+  const [prompt, setPrompt] = useState('')
+  return <div className="magic-prompt-card">
+    <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="prompt here" aria-label="Magic editor prompt" />
+    <div className="magic-prompt-controls">
+      <label>Size <select defaultValue="1:1" aria-label="Image size"><option>1:1</option><option>4:5</option><option>16:9</option></select></label>
+      <label>Quality <select defaultValue="2" aria-label="Image quality"><option>1</option><option>2</option><option>3</option></select></label>
+    </div>
+  </div>
+}
+
 function TryOnSection({ sectionRef }: { sectionRef: RefObject<HTMLElement | null> }) {
+  const [activeTool, setActiveTool] = useState<TryOnTool>('try-on')
   const [isTryOnLoading, setIsTryOnLoading] = useState(false)
+  const activeToolConfig = TRYON_TOOLS.find(({ id }) => id === activeTool) ?? TRYON_TOOLS[0]
+  const selectTool = (tool: TryOnTool) => {
+    setActiveTool(tool)
+    setIsTryOnLoading(false)
+  }
   const personSamples = ['/images/tryon/person-1.png', '/images/tryon/person-2.png', '/images/tryon/person-3.png', '/images/tryon/person-4.png'] as const
   const clothesSamples = ['/images/tryon/clothes-1.png', '/images/tryon/clothes-2.png', '/images/tryon/clothes-3.png', '/images/tryon/clothes-4.png'] as const
 
-  return <section ref={sectionRef} id="tryon" className="tryon-screen relative z-10 min-h-screen snap-start" aria-labelledby="tryon-title">
+  return <section ref={sectionRef} id="tryon" className="tryon-screen relative z-10 min-h-screen snap-start" aria-label="Try-on tools">
     <img className="tryon-background" src="/images/tryon/background.png" alt="" aria-hidden="true" />
+    <div className="tryon-tool-intro">
+      <nav className="tryon-tool-menu" aria-label="Creative tools">
+        {TRYON_TOOLS.map(({ id, label }) => <button key={id} type="button" className={activeTool === id ? 'is-active' : ''} aria-current={activeTool === id ? 'page' : undefined} onClick={() => selectTool(id)}><Corner position="tl" /><Corner position="tr" /><Corner position="bl" /><Corner position="br" /><span>{label}</span></button>)}
+      </nav>
+      <p>{activeToolConfig.description}</p>
+    </div>
     <div className="tryon-layout">
       <div className="tryon-controls">
-        <h2 id="tryon-title">TRY-ON<br />EVERYTHING</h2>
-        <div className="tryon-upload-stack">
-          <TryOnUploadCard label="Upload person" samples={personSamples} />
-          <TryOnUploadCard label="Upload Cloths" samples={clothesSamples} />
+        <div className={`tryon-upload-stack ${activeTool === 'ai-studio' ? 'is-ai-studio' : ''}`}>
+          {activeTool === 'ai-studio' ? <MagicPromptCard /> : <>
+            <TryOnUploadCard label="Upload person" samples={personSamples} />
+            {activeTool === 'magic-editor' ? <MagicPromptCard /> : <TryOnUploadCard label="Upload Cloths" samples={clothesSamples} />}
+          </>}
           <button type="button" className="tryon-cta button-primary" onClick={() => setIsTryOnLoading(true)} disabled={isTryOnLoading}><img src="/images/tryon/try-now-icon.svg" alt="" aria-hidden="true" />TRY NOW</button>
         </div>
       </div>
       <div className="tryon-preview" aria-label="Try-on result preview">
-        <p>See yourself wearing dresses, streetwear, bikinis, formal wear and more.</p>
-        <div className={`tryon-phone-frame ${isTryOnLoading ? 'is-loading' : ''}`} data-figma-node-id={isTryOnLoading ? '11790:1568' : '11787:1320'} aria-label={isTryOnLoading ? 'Generating try-on image' : undefined}>
+        <div key={`${activeTool}-${isTryOnLoading ? 'loading' : 'default'}`} className={`tryon-phone-frame ${isTryOnLoading ? 'is-loading' : ''}`} data-figma-node-id={isTryOnLoading ? '11790:1568' : '11787:1320'} aria-label={isTryOnLoading ? 'Generating try-on image' : undefined}>
           {isTryOnLoading ? <img key="loading" className="tryon-genimg-placeholder" src="/images/tryon/genimg-loading.svg" alt="" aria-hidden="true" /> : <img key="default" src="/images/tryon/phone-frame.svg" alt="" aria-hidden="true" />}
         </div>
-        <img className="tryon-model" data-figma-node-id="11787:1347" src="/images/tryon/model.png" alt="Virtual try-on model" />
-        <img className="tryon-model-shadow" data-figma-node-id="11787:1349" src="/images/tryon/model-shadow.svg" alt="" aria-hidden="true" />
+      </div>
+      <div className="tryon-model-illustration" aria-hidden="true">
+        <img className="tryon-model" data-figma-node-id="11787:1347" src="/images/tryon/model.png" alt="" />
       </div>
     </div>
   </section>
@@ -170,6 +212,16 @@ function JoinBetaPage({ onBack }: { onBack: () => void }) {
   const [goals, setGoals] = useState<string[]>([])
   const [task, setTask] = useState('')
   const [exampleName, setExampleName] = useState('')
+  const [examplePreviewUrl, setExamplePreviewUrl] = useState<string | null>(null)
+  useEffect(() => () => {
+    if (examplePreviewUrl) URL.revokeObjectURL(examplePreviewUrl)
+  }, [examplePreviewUrl])
+  const handleExampleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setExampleName(file.name)
+    setExamplePreviewUrl(URL.createObjectURL(file))
+  }
   const toggleGoal = (goal: string) => setGoals((current) => current.includes(goal) ? current.filter((item) => item !== goal) : [...current, goal])
 
   return <main className="join-beta-page" data-figma-node-id="11798:1773">
@@ -180,7 +232,7 @@ function JoinBetaPage({ onBack }: { onBack: () => void }) {
       <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${role ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${role ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />1</span><h1>What best describes you?</h1></div><div className="join-beta-options join-beta-role-options">{JOIN_BETA_ROLES.map((item) => <button key={item} type="button" className={`join-beta-chip ${role === item ? 'is-selected' : ''}`} onClick={() => setRole(item)}>{role === item && <img src="/images/join-beta-role.svg" alt="" aria-hidden="true" />}{item}</button>)}</div></section>
       <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${goals.length > 0 ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${goals.length > 0 ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />2</span><h2>What are you hoping to achieve with AI-generated fashion images?</h2></div><div className="join-beta-options join-beta-goal-options">{JOIN_BETA_GOALS.map((item) => <button key={item} type="button" className={`join-beta-goal ${goals.includes(item) ? 'is-selected' : ''}`} onClick={() => toggleGoal(item)}><span className="join-beta-checkbox">{goals.includes(item) && <img src="/images/join-beta-check.svg" alt="" aria-hidden="true" />}</span>{item}</button>)}</div></section>
       <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${task.trim() ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${task.trim() ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />1</span><h2>If you could magically automate one task, what would it be?</h2></div><textarea className="join-beta-textarea" value={task} onChange={(event) => setTask(event.target.value)} placeholder={'"Upload a clothing photo and instantly generate 20 realistic model images for different body types and poses."'} /></section>
-      <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${exampleName ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${exampleName ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />2</span><h2>Upload an example (Optional but highly valuable)</h2></div><label className="join-beta-upload"><input type="file" accept="image/png,image/jpeg" onChange={(event) => setExampleName(event.target.files?.[0]?.name ?? '')} /><span className="join-beta-upload-icon"><img src="/images/join-beta-image.svg" alt="" aria-hidden="true" /></span><span>{exampleName || "Show us what you're trying to create."}</span></label></section>
+      <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${exampleName ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${exampleName ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />2</span><h2>Upload an example (Optional but highly valuable)</h2></div><label className={`join-beta-upload ${examplePreviewUrl ? 'has-preview' : ''}`}><input type="file" accept="image/png,image/jpeg" onChange={handleExampleChange} />{examplePreviewUrl ? <img className="join-beta-upload-preview" src={examplePreviewUrl} alt="Uploaded example preview" /> : <span className="join-beta-upload-icon"><img src="/images/join-beta-image.svg" alt="" aria-hidden="true" /></span>}<span>{exampleName || "Show us what you're trying to create."}</span></label></section>
       <section className="join-beta-footer"><p>Thank you for helping us build a better product.</p><button type="submit" className="join-beta-submit button-primary"><img src="/images/join-beta-step.svg" alt="" aria-hidden="true" />TAKE FREE NOW</button><p className="join-beta-reward">You'll receive:<br /><strong>5 time Generate now</strong><br />Early Access Invitation at Launch</p></section>
     </form>
   </main>
