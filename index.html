@@ -2,149 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Slora — mobile-first AI image generation and editing." />
-    <title>Slora — Anything You Imagine</title>
-    <link rel="icon" href="assets/imgPolygon3.svg" />
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="header.css" />
+    <meta
+      name="description"
+      content="pure white minimal futuristic fashion website interface"
+    />
+    <title>slorahome</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Michroma&family=Orbitron:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <header class="hero" id="home">
-      <nav class="navbar navbar-inverse" aria-label="Main navigation">
-        <a class="brand" href="#home" aria-label="Slora home">
-          <span class="brand-art" aria-hidden="true">
-            <img class="brand-mark" src="assets/slora-logo-mark.svg" alt="" />
-            <img class="brand-wordmark" src="assets/slora-logo-wordmark.svg" alt="" />
-          </span>
-        </a>
-        <div class="nav-actions">
-          <a class="pill pill-green small" href="#download" data-auth-trigger><span class="nav-btn-icon"><img src="assets/nav-gift.svg" alt="" /></span> JOIN BETA NOW</a>
-          <a class="pill pill-green small" href="#showcase" data-auth-trigger><span class="nav-btn-icon"><img src="assets/nav-try.svg" alt="" /></span> TRY FREE</a>
-        </div>
-        <button class="profile-avatar" type="button" aria-label="Profile" title="Profile"><img src="assets/profile-avatar.svg" alt="" /></button>
-        <button class="menu" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
-      </nav>
-
-      <div class="hero-content">
-        <img class="hero-sparkle" src="assets/hero-sparkle.svg" alt="" />
-        <img class="hero-logo" src="assets/hero-logo.svg" alt="SLORA" />
-        <h1>Anything You Imagine</h1>
-        <div class="hero-buttons">
-          <a class="pill pill-green" href="#download" data-auth-trigger><span class="hero-btn-icon"><img src="assets/hero-join.svg" alt="" /></span> JOIN BETA NOW</a>
-          <a class="pill pill-white" href="#showcase" data-auth-trigger><span class="hero-btn-icon"><img src="assets/hero-try.svg" alt="" /></span> TRY NOW</a>
-        </div>
-      </div>
-    </header>
-
-    <main>
-      <div class="marquee" aria-label="Slora features">
-        <div class="marquee-track">
-          <a href="tryon.html">AI Try-on</a><i></i><a href="magic-editor.html">Magic Editor</a><i></i><a href="tryon.html">TRY-ON</a><i></i><a href="ai-studio.html">AI STUDIO</a><i></i><span>AI Generation</span>
-        </div>
-      </div>
-
-      <section class="features section shell" id="features">
-        <div class="section-head split">
-          <h2>Why Slora<br />Feels Different</h2>
-          <p class="intro">Experience AI that creates natural, realistic results—faster, smarter, and effortlessly.</p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card"><img src="assets/imgRectangle.png" alt="Virtual fashion try-on in a sunlit room" /><div class="card-copy"><h3>Try-on Everything</h3><ul><li>Wear anything. Stay yourself.</li><li>Keep your real face and identity</li><li>Realistic outfit replacement</li><li>Your body stays yours</li><li>Keep your pose &amp; background</li><li>Works with everyday photos</li></ul></div></article>
-          <article class="feature-card"><img src="assets/imgRectangle1.png" alt="AI magic editor fashion composition" /><div class="card-copy"><h3>AI Magic Editor</h3><ul><li>Edit anything. Keep everything that matters.</li><li>Change outfits instantly</li><li>Replace backgrounds naturally</li><li>Preserve your face perfectly</li><li>Keep accessories you love</li><li>Professional-quality edits</li></ul></div></article>
-          <article class="feature-card"><img src="assets/imgRectangle2.png" alt="AI Studio character collection" /><div class="card-copy"><h3>AI Studio</h3><ul><li>Generate beautiful images from simple prompts</li><li>Generate beautiful, realistic virtual models. Customize face, style, outfit and personality</li><li>Build a consistent AI character across generations</li></ul></div></article>
-        </div>
-      </section>
-
-      <section class="tools section" id="tools">
-        <div class="shell narrow">
-          <div class="tools-head"><h2>Everything<br />You Need to Create</h2><p>Create, edit and transform stunning images with powerful AI tools—all in one place.</p></div>
-          <div class="tool-list">
-            <a class="tool-trigger" href="ai-studio.html"><span><strong>AI Studio</strong><small>Create portraits, avatars, fashion photos and artistic images from a simple prompt.</small></span><img class="tool-arrow" src="assets/tool-arrow.svg" alt="" /></a>
-            <a class="tool-trigger" href="magic-editor.html"><span><strong>Magic Editor</strong><small>Remove objects, replace backgrounds, change outfits or enhance every detail.</small></span><img class="tool-arrow" src="assets/tool-arrow.svg" alt="" /></a>
-            <a class="tool-trigger" href="tryon.html"><span><strong>TRY-ON EVERYTHING</strong><small>See yourself wearing dresses, streetwear, bikinis, formal wear and more.</small></span><img class="tool-arrow" src="assets/tool-arrow.svg" alt="" /></a>
-            <a class="tool-trigger" href="#showcase"><span><strong>VIDEO E COMMERCE</strong><small>Coming soon</small></span><img class="tool-arrow" src="assets/tool-arrow.svg" alt="" /></a>
-          </div>
-        </div>
-      </section>
-
-      <section class="showcase section shell" id="showcase">
-        <div class="section-head split">
-          <div><p class="eyebrow">Creative showcase</p><h2>Explore what<br />you can create</h2></div>
-          <div class="showcase-intro"><p>Discover thousands of styles you can create with just one photo.</p><div class="filters" role="group" aria-label="Filter gallery"><button class="active" data-filter="all" aria-pressed="true">All</button><button data-filter="try" aria-pressed="false">Try-on</button><button data-filter="editor" aria-pressed="false">Editor</button><button data-filter="studio" aria-pressed="false">AI studio</button><button data-filter="lifestyle" aria-pressed="false">Lifestyle</button></div></div>
-        </div>
-        <div class="gallery" id="create" aria-live="polite">
-          <figure class="g1" data-category="lifestyle"><img src="assets/imgRectangle3.png" alt="Woman posing on a motorcycle" /></figure>
-          <figure class="g2" data-category="try"><img src="assets/imgRectangle4.png" alt="Fashion portrait seated in a wicker chair" /></figure>
-          <figure class="g3" data-category="studio"><img src="assets/imgRectangle5.png" alt="Woman in a white floral dress" /></figure>
-          <div class="stat"><strong>10k+</strong><span>Beta creators</span></div>
-          <figure class="g4" data-category="try"><img src="assets/imgRectangle6.png" alt="AI fashion swimwear portrait" /></figure>
-          <figure class="g5" data-category="lifestyle"><img src="assets/imgRectangle7.png" alt="Streetwear portrait" /></figure>
-          <figure class="g6" data-category="editor"><img src="assets/imgRectangle8.png" alt="Studio portrait in a white shirt" /></figure>
-          <figure class="g7" data-category="try"><img src="assets/imgRectangle9.png" alt="AI swimwear portrait" /></figure>
-        </div>
-      </section>
-
-      <section class="cta section" id="download">
-        <div class="shell cta-inner">
-          <div class="cta-content">
-            <p class="eyebrow">Ready to Explore Your Creativity?</p>
-            <h2>Everything AI Can Do for Your Photos</h2>
-            <p class="cta-description">Everything starts with a single photo.</p>
-            <div class="cta-actions">
-              <a class="cta-button cta-primary" href="#home" data-auth-trigger><span class="cta-icon"><img src="assets/cta-join.svg" alt="" /></span>JOIN BETA NOW</a>
-              <a class="cta-button cta-secondary" href="#showcase" data-auth-trigger><span class="cta-icon"><img src="assets/cta-try.svg" alt="" /></span>TRY NOW</a>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer id="pricing">
-      <div class="shell footer-grid">
-        <div class="footer-about"><a class="footer-logo" href="#home" aria-label="Slora home"><span aria-hidden="true"><img src="assets/slora-logo-mark.svg" alt="" /><img src="assets/slora-logo-wordmark.svg" alt="" /></span></a><p>Slora is a mobile-first AI image generation and editing app built for creators who need high-quality visuals fast.</p><div><a href="#">Telegram</a><a href="#">x.com</a><a href="#">discord</a></div></div>
-        <div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#showcase">Gallery</a></div>
-        <div><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Contact</a></div>
-        <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Guidelines</a></div>
-      </div>
-      <div class="shell copyright"><span>© 2026 Slora AI. All rights reserved.</span><span>Mobile-first AI generation</span></div>
-    </footer>
-    <div class="login-overlay" id="login-overlay" hidden>
-      <div class="login-backdrop" data-login-close></div>
-      <section class="login-dialog" role="dialog" aria-modal="true" aria-labelledby="login-title" tabindex="-1">
-        <div class="login-visual" aria-hidden="true">
-          <img src="assets/login-promo.png" alt="" />
-        </div>
-        <div class="login-panel">
-          <img class="login-panel-grid" src="assets/login-grid.svg" alt="" aria-hidden="true" />
-          <button class="login-close" type="button" aria-label="Close sign in" data-login-close>
-            <img src="assets/login-close.svg" alt="" />
-          </button>
-          <div class="login-content">
-            <header class="login-heading">
-              <span class="login-logo" aria-hidden="true">
-                <img src="assets/slora-logo-mark.svg" alt="" />
-                <img src="assets/slora-logo-wordmark.svg" alt="" />
-              </span>
-              <h2 id="login-title">Sign in now for free generate</h2>
-            </header>
-            <form class="login-form" novalidate>
-              <button class="login-google" type="button">
-                <img src="assets/login-google.svg" alt="" />
-                <span>Sign in with Google</span>
-              </button>
-              <span class="login-or">or</span>
-              <label class="login-email-label" for="login-email">Continue with email</label>
-              <input id="login-email" name="email" type="email" autocomplete="email" placeholder="name@gmail.com" required />
-              <button class="login-code" type="button">Get verification code</button>
-              <button class="login-submit" type="submit">SIGN IN</button>
-              <p class="login-status" aria-live="polite"></p>
-            </form>
-            <p class="login-legal">By proceeding with the login process, you agree to our <a href="#">User Service Agreement</a> and <a href="#">Privacy Policy.</a></p>
-          </div>
-        </div>
-      </section>
-    </div>
-    <script src="script.js"></script>
+  <body class="bg-white text-black antialiased selection:bg-black selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
