@@ -1,0 +1,37 @@
+import { useEffect, useState, type ChangeEvent } from 'react'
+
+const JOIN_BETA_ROLES = ['Fashion Brand Owner', 'Online Seller', 'Marketing Agency', 'Content Creator', 'Photographer', 'Designer', 'E-commerce Team', 'Retail Store Manager']
+const JOIN_BETA_GOALS = ['Create model photos without hiring models', 'Change clothing on existing photos', 'Generate product marketing content', 'Create social media posts faster', 'Build lookbooks and catalogs', 'write what you want']
+
+function JoinBetaPage({ onBack }: { onBack: () => void }) {
+  const [role, setRole] = useState('')
+  const [goals, setGoals] = useState<string[]>([])
+  const [task, setTask] = useState('')
+  const [exampleName, setExampleName] = useState('')
+  const [examplePreviewUrl, setExamplePreviewUrl] = useState<string | null>(null)
+  useEffect(() => () => {
+    if (examplePreviewUrl) URL.revokeObjectURL(examplePreviewUrl)
+  }, [examplePreviewUrl])
+  const handleExampleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setExampleName(file.name)
+    setExamplePreviewUrl(URL.createObjectURL(file))
+  }
+  const toggleGoal = (goal: string) => setGoals((current) => current.includes(goal) ? current.filter((item) => item !== goal) : [...current, goal])
+
+  return <main className="join-beta-page" data-figma-node-id="11798:1773">
+    <button type="button" className="join-beta-home" onClick={onBack} aria-label="Back to home"><img src="/images/full-logo.svg" alt="Slora" /></button>
+    <img className="join-beta-logo" src="/images/join-beta-logo.svg" alt="Join beta" />
+    <div className="join-beta-model" aria-hidden="true"><img src="/images/tryon/model.png" alt="" /><img src="/images/tryon/model-shadow.svg" alt="" /></div>
+    <form className="join-beta-form" onSubmit={(event) => event.preventDefault()}>
+      <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${role ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${role ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />1</span><h1>What best describes you?</h1></div><div className="join-beta-options join-beta-role-options">{JOIN_BETA_ROLES.map((item) => <button key={item} type="button" className={`join-beta-chip ${role === item ? 'is-selected' : ''}`} onClick={() => setRole(item)}>{role === item && <img src="/images/join-beta-role.svg" alt="" aria-hidden="true" />}{item}</button>)}</div></section>
+      <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${goals.length > 0 ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${goals.length > 0 ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />2</span><h2>What are you hoping to achieve with AI-generated fashion images?</h2></div><div className="join-beta-options join-beta-goal-options">{JOIN_BETA_GOALS.map((item) => <button key={item} type="button" className={`join-beta-goal ${goals.includes(item) ? 'is-selected' : ''}`} onClick={() => toggleGoal(item)}><span className="join-beta-checkbox">{goals.includes(item) && <img src="/images/join-beta-check.svg" alt="" aria-hidden="true" />}</span>{item}</button>)}</div></section>
+      <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${task.trim() ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${task.trim() ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />1</span><h2>If you could magically automate one task, what would it be?</h2></div><textarea className="join-beta-textarea" value={task} onChange={(event) => setTask(event.target.value)} placeholder={'"Upload a clothing photo and instantly generate 20 realistic model images for different body types and poses."'} /></section>
+      <section className="join-beta-question"><div className="join-beta-heading"><span className={`join-beta-step ${exampleName ? 'is-active' : 'is-muted'}`}><img src={`/images/join-beta-step${exampleName ? '' : '-muted'}.svg`} alt="" aria-hidden="true" />2</span><h2>Upload an example (Optional but highly valuable)</h2></div><label className={`join-beta-upload ${examplePreviewUrl ? 'has-preview' : ''}`}><input type="file" accept="image/png,image/jpeg" onChange={handleExampleChange} />{examplePreviewUrl ? <img className="join-beta-upload-preview" src={examplePreviewUrl} alt="Uploaded example preview" /> : <span className="join-beta-upload-icon"><img src="/images/join-beta-image.svg" alt="" aria-hidden="true" /></span>}<span>{exampleName || "Show us what you're trying to create."}</span></label></section>
+      <section className="join-beta-footer"><p>Thank you for helping us build a better product.</p><button type="submit" className="join-beta-submit button-primary"><img src="/images/join-beta-step.svg" alt="" aria-hidden="true" />TAKE FREE NOW</button><p className="join-beta-reward">You'll receive:<br /><strong>5 time Generate now</strong><br />Early Access Invitation at Launch</p></section>
+    </form>
+  </main>
+}
+
+export { JoinBetaPage }
