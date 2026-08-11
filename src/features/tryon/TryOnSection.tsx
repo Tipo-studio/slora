@@ -55,6 +55,7 @@ function TryOnSection({ sectionRef }: { sectionRef: RefObject<HTMLElement | null
   const previewUrlsRef = useRef({ person: null as string | null, clothes: null as string | null })
   const activeToolConfig = TRYON_TOOLS.find(({ id }) => id === activeTool) ?? TRYON_TOOLS[0]
   const isGenerating = generation?.status === 'queued' || generation?.status === 'processing'
+  const generationId = generation?.generationId
   const resultOutput = generation?.outputs.find((output) => output.type === 'image' && output.url)
 
   useEffect(() => () => Object.values(previewUrlsRef.current).forEach((url) => { if (url) URL.revokeObjectURL(url) }), [])
@@ -70,11 +71,11 @@ function TryOnSection({ sectionRef }: { sectionRef: RefObject<HTMLElement | null
   }, [activeToolConfig.slug])
 
   useEffect(() => {
-    if (!generation || !isGenerating) return
+    if (!generationId || !isGenerating) return
     let isCurrent = true
     const poll = async () => {
       try {
-        const nextGeneration = await getGeneration(generation.generationId)
+        const nextGeneration = await getGeneration(generationId)
         if (isCurrent) setGeneration(nextGeneration)
       } catch (requestError) {
         if (isCurrent) setError(requestError instanceof Error ? requestError.message : 'Unable to check generation status.')
@@ -83,7 +84,7 @@ function TryOnSection({ sectionRef }: { sectionRef: RefObject<HTMLElement | null
     void poll()
     const intervalId = window.setInterval(() => void poll(), 2500)
     return () => { isCurrent = false; window.clearInterval(intervalId) }
-  }, [generation?.generationId, isGenerating])
+  }, [generationId, isGenerating])
 
   const updateImage = async (slot: ImageSlot, file: File | null) => {
     const currentUrl = previewUrlsRef.current[slot]

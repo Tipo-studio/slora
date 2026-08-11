@@ -1,50 +1,90 @@
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { supabase } from '../../lib/supabase'
+import { isAuthProviderEnabled, supabase } from '../../lib/supabase'
 
 function LoginOverlay({ onClose }: { onClose: () => void }) {
+  const emailId = useId()
+  const passwordId = useId()
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const signInWithGoogle = async () => {
+  useEffect(() => {
+    emailInputRef.current?.focus()
+  }, [])
+
+  const resetFeedback = () => {
     setError('')
     setMessage('')
+  }
+
+  const switchMode = (nextMode: 'sign-in' | 'sign-up') => {
+    setMode(nextMode)
+    resetFeedback()
+  }
+
+  const signInWithGoogle = async () => {
+    resetFeedback()
     setIsSubmitting(true)
 
-    const { error: signInError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    })
+    try {
+      const isGoogleEnabled = await isAuthProviderEnabled('google')
+      if (isGoogleEnabled === false) {
+        setError('Google sign-in is not enabled for this Supabase project yet.')
+        return
+      }
 
-    if (signInError) {
-      setError(signInError.message)
+      const { error: signInError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
+      })
+
+      if (signInError) setError(signInError.message)
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to start Google sign-in.')
+    } finally {
       setIsSubmitting(false)
     }
   }
 
-  const sendMagicLink = async (event: FormEvent<HTMLFormElement>) => {
+  const submitEmailPassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setError('')
-    setMessage('')
+    resetFeedback()
     setIsSubmitting(true)
 
-    const { error: signInError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin,
-        shouldCreateUser: true,
-      },
-    })
+    try {
+      if (mode === 'sign-in') {
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (signInError) {
-      setError(signInError.message)
-    } else {
-      setMessage('Check your email for a secure sign-in link.')
+        if (signInError) {
+          setError(signInError.message)
+        } else {
+          onClose()
+        }
+      } else {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
+        })
+
+        if (signUpError) {
+          setError(signUpError.message)
+        } else if (data.session) {
+          onClose()
+        } else {
+          setMessage('Account created. Check your email to confirm your account, then sign in.')
+        }
+      }
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to complete authentication.')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
   return <div className="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
@@ -55,14 +95,24 @@ function LoginOverlay({ onClose }: { onClose: () => void }) {
       <div className="login-content">
         <div className="login-intro">
           <img className="login-logo" src="/images/full-logo.svg" alt="Slora" />
-          <p id="login-title">Sign in now for free generate</p>
+          <p id="login-title">Sign in now to create for free</p>
         </div>
-        <form className="login-form" onSubmit={sendMagicLink}>
+        <form className="login-form" onSubmit={submitEmailPassword}>
           <button type="button" className="login-google" onClick={signInWithGoogle} disabled={isSubmitting}><img src="/images/login/google.svg" alt="" aria-hidden="true" /><span>Sign in with Google</span></button>
           <p className="login-or">or</p>
-          <p className="login-email-label">Continue with email</p>
-          <input className="login-field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@gmail.com" aria-label="Email address" autoComplete="email" required disabled={isSubmitting} />
-          <button type="submit" className="login-submit button-primary" disabled={isSubmitting}>{isSubmitting ? 'SENDING…' : 'EMAIL ME A SIGN-IN LINK'}</button>
+          <div className="login-mode-switch" role="tablist" aria-label="Email authentication mode">
+            <button type="button" role="tab" aria-selected={mode === 'sign-in'} className={mode === 'sign-in' ? 'is-active' : ''} onClick={() => switchMode('sign-in')} disabled={isSubmitting}>Sign in</button>
+            <button type="button" role="tab" aria-selected={mode === 'sign-up'} className={mode === 'sign-up' ? 'is-active' : ''} onClick={() => switchMode('sign-up')} disabled={isSubmitting}>Sign up</button>
+          </div>
+          <div className="login-control">
+            <label htmlFor={emailId}>Email</label>
+            <input ref={emailInputRef} id={emailId} className="login-field" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@gmail.com" autoComplete="email" required disabled={isSubmitting} />
+          </div>
+          <div className="login-control">
+            <label htmlFor={passwordId}>Password</label>
+            <input id={passwordId} className="login-field" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} minLength={6} required disabled={isSubmitting} />
+          </div>
+          <button type="submit" className="login-submit button-primary" disabled={isSubmitting}>{isSubmitting ? 'PLEASE WAIT…' : mode === 'sign-in' ? 'SIGN IN' : 'CREATE ACCOUNT'}</button>
           {message && <p className="login-status login-status-success" role="status">{message}</p>}
           {error && <p className="login-status login-status-error" role="alert">{error}</p>}
         </form>
