@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { UserRound } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
+import { LogOut, UserRound } from 'lucide-react'
 import { Corner } from '../ui/Corner'
 import { ImageRevealBackground } from './ImageRevealBackground'
 import { CoreInteractiveGrid } from '../../features/core/CoreInteractiveGrid'
@@ -14,7 +15,7 @@ const CORE_VIDEO_SOURCES = [
 ] as const
 const TRY_YOUR_IDEA_IMAGE = '/images/try-your-idea-default.png'
 
-function HomePage({ onOpenJoinBeta }: { onOpenJoinBeta: () => void }) {
+function HomePage({ onOpenJoinBeta, user, onSignOut }: { onOpenJoinBeta: () => void; user: User | null; onSignOut: () => Promise<void> }) {
   const nextSectionRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLElement>(null)
   const [isCoreFunctionVisible, setIsCoreFunctionVisible] = useState(false)
@@ -82,8 +83,17 @@ function HomePage({ onOpenJoinBeta }: { onOpenJoinBeta: () => void }) {
       </a>
       <nav aria-label="Main navigation" className="home2-header-nav flex items-center font-medium uppercase tracking-[.2em]" style={{ gap: 'var(--gap-nav)', fontSize: 'var(--nav)' }}>
         <button type="button" onClick={openJoinBeta} className="transition-opacity hover:opacity-50">JOIN BETA</button>
-        <button type="button" onClick={() => setIsLoginOpen(true)} className="transition-opacity hover:opacity-50">TRY FREE</button>
-        <button type="button" aria-label="Profile" title="Profile" className="home2-profile grid place-items-center rounded-full border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white"><UserRound size="var(--icon)" strokeWidth={1.5} /></button>
+        {user ? (
+          <>
+            <span className="home2-user-email" title={user.email}>{user.email}</span>
+            <button type="button" onClick={() => void onSignOut()} aria-label="Sign out" title="Sign out" className="home2-profile grid place-items-center rounded-full border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white"><LogOut size="var(--icon)" strokeWidth={1.5} /></button>
+          </>
+        ) : (
+          <>
+            <button type="button" onClick={() => setIsLoginOpen(true)} className="transition-opacity hover:opacity-50">TRY FREE</button>
+            <button type="button" onClick={() => setIsLoginOpen(true)} aria-label="Sign in" title="Sign in" className="home2-profile grid place-items-center rounded-full border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white"><UserRound size="var(--icon)" strokeWidth={1.5} /></button>
+          </>
+        )}
       </nav>
     </header>
     <main id="hero-section" className="relative z-10 flex min-h-screen flex-1 snap-start flex-col justify-between gap-10 lg:flex-row lg:items-center" style={{ paddingInline: 'var(--pad-x)', paddingBlock: 'var(--main-py)' }}>
