@@ -9,5 +9,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      '/sivitai-api': {
+        target: 'https://sivitai-api.onrender.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sivitai-api/, ''),
+      },
+    },
   },
 })

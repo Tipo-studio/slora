@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { HomePage } from './components/home/HomePage'
 import { JoinBetaPage } from './features/join-beta/JoinBetaPage'
+import { PaywallPage } from './features/paywall/PaywallPage'
 import { supabase } from './lib/supabase'
 
 function App() {
-  const [isJoinBetaPage, setIsJoinBetaPage] = useState(() => window.location.pathname === '/join-beta')
+  const [path, setPath] = useState(() => window.location.pathname)
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
@@ -15,28 +16,26 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const onPopState = () => setIsJoinBetaPage(window.location.pathname === '/join-beta')
+    const onPopState = () => setPath(window.location.pathname)
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  const openJoinBeta = () => {
-    window.history.pushState({}, '', '/join-beta')
-    setIsJoinBetaPage(true)
+  const navigate = (nextPath: string) => {
+    window.history.pushState({}, '', nextPath)
+    setPath(nextPath)
   }
 
-  const closeJoinBeta = () => {
-    window.history.pushState({}, '', '/')
-    setIsJoinBetaPage(false)
-  }
+  const openJoinBeta = () => navigate('/join-beta')
+  const closeJoinBeta = () => navigate('/')
 
   const signOut = async () => {
     await supabase.auth.signOut()
   }
 
-  return isJoinBetaPage
-    ? <JoinBetaPage onBack={closeJoinBeta} />
-    : <HomePage onOpenJoinBeta={openJoinBeta} user={user} onSignOut={signOut} />
+  if (path === '/join-beta') return <JoinBetaPage onBack={closeJoinBeta} />
+  if (path === '/paywall') return <PaywallPage onBack={() => navigate('/')} />
+  return <HomePage onOpenJoinBeta={openJoinBeta} onOpenPaywall={() => navigate('/paywall')} user={user} onSignOut={signOut} onAuthenticated={setUser} />
 }
 
 export default App

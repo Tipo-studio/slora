@@ -7,6 +7,10 @@ function CoreInteractiveGrid() {
   useEffect(() => {
     const grid = gridRef.current
     if (!grid) return
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (!mediaQuery.matches || reducedMotionQuery.matches) return
+
     const target = { x: -1000, y: -1000 }
     const current = { x: -1000, y: -1000 }
     let frame = 0
@@ -46,13 +50,20 @@ function CoreInteractiveGrid() {
         tile.style.setProperty('--tile-light', (0.12 + influence * 0.62).toFixed(3))
         tile.style.setProperty('--tile-border', (0.12 + influence * 0.62).toFixed(3))
       })
-      if (active) frame = requestAnimationFrame(animate)
+      if (active && !reducedMotionQuery.matches) frame = requestAnimationFrame(animate)
+    }
+    const onMotionPreferenceChange = () => {
+      if (reducedMotionQuery.matches) {
+        cancelAnimationFrame(frame)
+        frame = 0
+      }
     }
 
     measureTiles()
     window.addEventListener('mousemove', move)
     window.addEventListener('mouseleave', leave)
     window.addEventListener('resize', measureTiles)
+    reducedMotionQuery.addEventListener('change', onMotionPreferenceChange)
     frame = requestAnimationFrame(animate)
     return () => {
       active = false
@@ -60,6 +71,7 @@ function CoreInteractiveGrid() {
       window.removeEventListener('mousemove', move)
       window.removeEventListener('mouseleave', leave)
       window.removeEventListener('resize', measureTiles)
+      reducedMotionQuery.removeEventListener('change', onMotionPreferenceChange)
     }
   }, [])
 
