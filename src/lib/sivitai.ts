@@ -1,8 +1,6 @@
 import { supabase } from './supabase'
 
-const API_BASE_URL = import.meta.env.DEV
-  ? '/sivitai-api'
-  : import.meta.env.NEXT_PUBLIC_API_URL ?? 'https://sivitai-api.onrender.com'
+const API_BASE_URL = '/sivitai-api'
 
 type ToolField = {
   name: string

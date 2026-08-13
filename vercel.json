@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/sivitai-api/:path*",
+      "destination": "https://sivitai-api.onrender.com/:path*"
+    }
+  ]
+}
