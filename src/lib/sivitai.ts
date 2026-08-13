@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-const API_BASE_URL = '/sivitai-api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/sivitai-api'
 
 type ToolField = {
   name: string
@@ -44,6 +44,10 @@ type Generation = {
 
 type ApiError = { message?: string }
 
+// React Strict Mode can initiate parallel API requests before Supabase persists a
+// guest session. Share the sign-in operation so only one anonymous user is created.
+let anonymousSignIn: Promise<string> | null = null
+
 async function getAccessToken(auth: 'required' | 'optional' | 'none') {
   if (auth === 'none') return null
 
@@ -51,9 +55,19 @@ async function getAccessToken(auth: 'required' | 'optional' | 'none') {
   if (session?.access_token) return session.access_token
 
   if (auth === 'optional') {
-    const { data, error } = await supabase.auth.signInAnonymously()
-    if (data.session?.access_token) return data.session.access_token
-    if (error) throw new Error('Guest generation is unavailable right now. Please try again later.')
+    anonymousSignIn ??= supabase.auth.signInAnonymously()
+      .then(({ data, error }) => {
+        if (data.session?.access_token) return data.session.access_token
+        if (error) throw error
+        throw new Error('No guest session was returned.')
+      })
+      .finally(() => { anonymousSignIn = null })
+
+    try {
+      return await anonymousSignIn
+    } catch {
+      throw new Error('Guest generation is unavailable right now. Please try again later.')
+    }
   }
 
   throw new Error('Please sign in to use AI tools.')

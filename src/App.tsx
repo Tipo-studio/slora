@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { HomePage } from './components/home/HomePage'
 import { JoinBetaPage } from './features/join-beta/JoinBetaPage'
+import { LibraryPage } from './features/library/LibraryPage'
 import { PaywallPage } from './features/paywall/PaywallPage'
 import { supabase } from './lib/supabase'
 
@@ -23,7 +24,7 @@ function App() {
 
   const navigate = (nextPath: string) => {
     window.history.pushState({}, '', nextPath)
-    setPath(nextPath)
+    setPath(window.location.pathname)
   }
 
   const openJoinBeta = () => navigate('/join-beta')
@@ -34,8 +35,12 @@ function App() {
   }
 
   if (path === '/join-beta') return <JoinBetaPage onBack={closeJoinBeta} />
-  if (path === '/paywall') return <PaywallPage onBack={() => navigate('/')} />
-  return <HomePage onOpenJoinBeta={openJoinBeta} onOpenPaywall={() => navigate('/paywall')} user={user} onSignOut={signOut} onAuthenticated={setUser} />
+  if (path === '/library') return <LibraryPage user={user} onBack={() => navigate('/')} onOpenTool={(tool, imageUrl) => navigate(`/?tool=${tool}&image=${encodeURIComponent(imageUrl)}`)} />
+  if (path === '/paywall') {
+    const initialPlan = new URLSearchParams(window.location.search).get('plan')
+    return <PaywallPage onBack={() => navigate('/')} initialPlan={initialPlan === 'one-time' || initialPlan === 'creator' || initialPlan === 'studio' ? initialPlan : undefined} />
+  }
+  return <HomePage onOpenJoinBeta={openJoinBeta} onOpenLibrary={() => navigate('/library')} onOpenPaywall={(plan: 'one-time' | 'creator' | 'studio') => navigate(`/paywall?plan=${plan}`)} user={user} onSignOut={signOut} onAuthenticated={setUser} />
 }
 
 export default App

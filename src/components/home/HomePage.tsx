@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { CircleUserRound, Gift, LogOut, Sparkles, UserRound } from 'lucide-react'
+import { CircleUserRound, Gift, Images, LogOut, Sparkles, UserRound } from 'lucide-react'
 import { Corner } from '../ui/Corner'
 import { ImageRevealBackground } from './ImageRevealBackground'
 import { CoreInteractiveGrid } from '../../features/core/CoreInteractiveGrid'
 import { TryOnSection } from '../../features/tryon/TryOnSection'
 import { LoginOverlay } from '../../features/auth/LoginOverlay'
-import { getFreeGenerationsRemaining, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
+import { getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
 
 const BG_IMAGE_1 = '/images/lgpsm-background-base.png'
 const CORE_VIDEO_SOURCES = [
@@ -27,17 +27,20 @@ function scrollToSection(section: HTMLElement | null) {
   section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
 }
 
-function HomePage({ onOpenJoinBeta, onOpenPaywall, user, onSignOut, onAuthenticated }: { onOpenJoinBeta: () => void; onOpenPaywall: () => void; user: User | null; onSignOut: () => Promise<void>; onAuthenticated: (user: User) => void }) {
+function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOut, onAuthenticated }: { onOpenJoinBeta: () => void; onOpenLibrary: () => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio') => void; user: User | null; onSignOut: () => Promise<void>; onAuthenticated: (user: User) => void }) {
   const nextSectionRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLElement>(null)
   const [isCoreFunctionVisible, setIsCoreFunctionVisible] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(() => getFreeGenerationsRemaining())
+  const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
   const [activeCoreTab, setActiveCoreTab] = useState(0)
   const accountMenuRef = useRef<HTMLDivElement>(null)
   const coreVideoRef = useRef<HTMLVideoElement>(null)
   const isAuthenticatedUser = Boolean(user && !user.is_anonymous)
+  const requestedTool = new URLSearchParams(window.location.search).get('tool')
+  const requestedImageUrl = new URLSearchParams(window.location.search).get('image')
 
   useEffect(() => {
     const video = coreVideoRef.current
@@ -65,6 +68,11 @@ function HomePage({ onOpenJoinBeta, onOpenPaywall, user, onSignOut, onAuthentica
   }, [])
 
   useEffect(() => {
+    if (!requestedTool || !requestedImageUrl) return
+    window.requestAnimationFrame(() => scrollToSection(tryOnSectionRef.current))
+  }, [requestedImageUrl, requestedTool])
+
+  useEffect(() => {
     if (!isLoginOpen) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setIsLoginOpen(false)
@@ -79,7 +87,10 @@ function HomePage({ onOpenJoinBeta, onOpenPaywall, user, onSignOut, onAuthentica
   }, [isLoginOpen])
 
   useEffect(() => {
-    const syncFreeGenerations = () => setFreeGenerationsRemaining(getFreeGenerationsRemaining())
+    const syncFreeGenerations = () => {
+      setFreeGenerationsRemaining(getFreeGenerationsRemaining())
+      setCurrentPackage(getCurrentPackage())
+    }
     return subscribeToFreeGenerationChanges(syncFreeGenerations)
   }, [])
 
@@ -116,9 +127,10 @@ function HomePage({ onOpenJoinBeta, onOpenPaywall, user, onSignOut, onAuthentica
             {isAccountMenuOpen && <div className="home2-account-dropdown" role="menu" aria-label="Account menu">
               <div className="home2-account-summary">
                 <div className="home2-account-avatar" aria-hidden="true"><img src={getAvatarUrl(user)} alt="" /></div>
-                <div className="home2-account-details"><span title={user.email}>{user.email}</span><div><small>Free plan</small><button type="button" onClick={onOpenPaywall}>Upgrade</button></div></div>
+                <div className="home2-account-details"><span title={user.email}>{user.email}</span><div><small>{currentPackage ? `${currentPackage} package` : 'Free plan'}</small><button type="button" onClick={() => onOpenPaywall('studio')}>Upgrade</button></div></div>
               </div>
               <button type="button" className="home2-account-item" role="menuitem" onClick={scrollToTryOn}><span><Sparkles size={16} strokeWidth={1.5} />Generation</span><strong><Sparkles size={10} strokeWidth={1.5} />{freeGenerationsRemaining}</strong></button>
+              <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenLibrary}><span><Images size={16} strokeWidth={1.5} />My library</span></button>
               <button type="button" className="home2-account-item" role="menuitem"><span><CircleUserRound size={16} strokeWidth={1.5} />My account</span></button>
               <div className="home2-account-divider" />
               <button type="button" className="home2-account-item" role="menuitem" onClick={() => void onSignOut()}><span><LogOut size={16} strokeWidth={1.5} />Sign out</span></button>
@@ -180,7 +192,7 @@ function HomePage({ onOpenJoinBeta, onOpenPaywall, user, onSignOut, onAuthentica
         </div>
       </div>
     </section>
-    <TryOnSection sectionRef={tryOnSectionRef} user={user} onRequestLogin={() => setIsLoginOpen(true)} />
+    <TryOnSection sectionRef={tryOnSectionRef} user={user} onRequestLogin={() => setIsLoginOpen(true)} onOpenPaywall={onOpenPaywall} initialTool={requestedTool === 'try-on' || requestedTool === 'magic-editor' ? requestedTool : undefined} initialImageUrl={requestedImageUrl} />
     <section className="relative z-10 mx-[var(--pad-x)] mb-[var(--pad-y)] aspect-[4/5] border border-gray-200 bg-cover bg-center sm:aspect-[16/9] lg:hidden" style={{ backgroundImage: `url("${BG_IMAGE_1}")` }} aria-label="LGPSM collection preview" />
 
     {isLoginOpen && <LoginOverlay onClose={() => setIsLoginOpen(false)} onAuthenticated={(authenticatedUser) => { onAuthenticated(authenticatedUser); setIsLoginOpen(false) }} />}

@@ -1,6 +1,7 @@
 const DEVICE_ID_STORAGE_KEY = 'slora-device-id'
 const FREE_GENERATION_STORAGE_KEY = 'slora-free-generation-used'
 const PURCHASED_GENERATIONS_STORAGE_KEY = 'slora-purchased-generations'
+const CURRENT_PACKAGE_STORAGE_KEY = 'slora-current-package'
 const FREE_GENERATION_LIMIT = 1
 const FREE_GENERATION_CHANGED_EVENT = 'slora-free-generation-changed'
 
@@ -39,9 +40,17 @@ export function getPurchasedGenerationsRemaining() {
   return Number.isFinite(purchasedGenerations) ? Math.max(0, purchasedGenerations) : 0
 }
 
-export function addPurchasedGenerations(amount: number) {
+export type PackageName = 'One time' | 'Creator' | 'Studio'
+
+export function getCurrentPackage(): PackageName | null {
+  const currentPackage = window.localStorage.getItem(CURRENT_PACKAGE_STORAGE_KEY)
+  return currentPackage === 'One time' || currentPackage === 'Creator' || currentPackage === 'Studio' ? currentPackage : null
+}
+
+export function addPurchasedGenerations(amount: number, packageName: PackageName) {
   if (!Number.isInteger(amount) || amount <= 0) return
   window.localStorage.setItem(PURCHASED_GENERATIONS_STORAGE_KEY, String(getPurchasedGenerationsRemaining() + amount))
+  window.localStorage.setItem(CURRENT_PACKAGE_STORAGE_KEY, packageName)
   window.dispatchEvent(new Event(FREE_GENERATION_CHANGED_EVENT))
 }
 
@@ -75,6 +84,8 @@ export function markFreeGenerationUsed() {
 export function resetFreeGenerationsForTesting() {
   if (!import.meta.env.DEV) return
   window.localStorage.removeItem(FREE_GENERATION_STORAGE_KEY)
+  window.localStorage.removeItem(PURCHASED_GENERATIONS_STORAGE_KEY)
+  window.localStorage.removeItem(CURRENT_PACKAGE_STORAGE_KEY)
   window.localStorage.removeItem(DEVICE_ID_STORAGE_KEY)
   window.dispatchEvent(new Event(FREE_GENERATION_CHANGED_EVENT))
 }

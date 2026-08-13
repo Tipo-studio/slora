@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, X } from 'lucide-react'
 import { ImageRevealBackground } from '../../components/home/ImageRevealBackground'
-import { addPurchasedGenerations } from '../../lib/freeGeneration'
+import { addPurchasedGenerations, getCurrentPackage, subscribeToFreeGenerationChanges, type PackageName } from '../../lib/freeGeneration'
 import { CoreInteractiveGrid } from '../core/CoreInteractiveGrid'
 
+type PlanSlug = 'one-time' | 'creator' | 'studio'
+
 type Plan = {
-  name: string
+  name: PackageName
+  slug: PlanSlug
   price: string
   generations: number
   credits: string
@@ -17,6 +20,7 @@ type Plan = {
 const plans: Plan[] = [
   {
     name: 'One time',
+    slug: 'one-time',
     price: '$4.99',
     generations: 5,
     credits: '5 Generation ~ $0.99 each',
@@ -25,6 +29,7 @@ const plans: Plan[] = [
   },
   {
     name: 'Creator',
+    slug: 'creator',
     price: '$9.99',
     generations: 300,
     credits: '300 Generations ~ $0.03 each',
@@ -33,6 +38,7 @@ const plans: Plan[] = [
   },
   {
     name: 'Studio',
+    slug: 'studio',
     price: '$19.99',
     generations: 700,
     credits: '700 Generations ~ $0.03 each',
@@ -50,15 +56,18 @@ function PlanFeature({ children, unavailable = false, studio = false }: { childr
   </li>
 }
 
-function PlanCard({ plan, billingPeriod, onSelect }: { plan: Plan; billingPeriod: 'monthly' | 'annual'; onSelect: (plan: Plan) => void }) {
+function PlanCard({ plan, billingPeriod, isSelected, isCurrentPackage, onSelect }: { plan: Plan; billingPeriod: 'monthly' | 'annual'; isSelected: boolean; isCurrentPackage: boolean; onSelect: (plan: Plan) => void }) {
+  const isOneTimePlan = plan.name === 'One time'
   const monthlyPrice = Number.parseFloat(plan.price.slice(1))
-  const price = billingPeriod === 'annual' ? monthlyPrice * .7 : monthlyPrice
+  const price = isOneTimePlan || billingPeriod === 'monthly' ? monthlyPrice : monthlyPrice * .7
   const formattedPrice = `$${price.toFixed(2)}`
-  return <article className={`paywall-plan paywall-plan-${plan.name.toLowerCase().replace(' ', '-')}`}>
+  const planSlug = plan.slug
+  return <article id={`paywall-plan-${planSlug}`} className={`paywall-plan paywall-plan-${planSlug} ${isSelected ? 'is-selected' : ''} ${isCurrentPackage ? 'is-current-package' : ''}`}>
+    {isCurrentPackage && <span className="paywall-current-package-badge">Current</span>}
     <div className="paywall-plan-main">
       <div className="paywall-plan-heading">
         <h2>{plan.name}</h2>
-        <div className="paywall-price"><strong>{formattedPrice}</strong><span>/month</span></div>
+        <div className="paywall-price"><strong>{formattedPrice}</strong>{!isOneTimePlan && <span>/month</span>}</div>
         <div className="paywall-credit"><img src="/images/paywall/credit.svg" alt="" aria-hidden="true" /><span>{plan.credits}</span></div>
       </div>
       <ul className="paywall-features">
@@ -67,18 +76,30 @@ function PlanCard({ plan, billingPeriod, onSelect }: { plan: Plan; billingPeriod
         {plan.studioFeature && <PlanFeature studio>{plan.studioFeature}</PlanFeature>}
       </ul>
     </div>
-    <button type="button" className="paywall-continue" onClick={() => onSelect(plan)}>Continue</button>
+    <button type="button" className="paywall-continue" onClick={() => onSelect(plan)} disabled={isCurrentPackage}>{isCurrentPackage ? 'Current package' : 'Continue'}</button>
   </article>
 }
 
-function PaywallPage({ onBack }: { onBack: () => void }) {
+function PaywallPage({ onBack, initialPlan }: { onBack: () => void; initialPlan?: 'one-time' | 'creator' | 'studio' }) {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
+  const [activePlan, setActivePlan] = useState<PlanSlug>('creator')
+  const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
   const [purchaseMessage, setPurchaseMessage] = useState('')
+
+  useEffect(() => {
+    if (!initialPlan) return
+    const plan = plans.find((item) => item.name.toLowerCase().replace(' ', '-') === initialPlan)
+    if (!plan) return
+    setActivePlan(initialPlan)
+    window.requestAnimationFrame(() => document.getElementById(`paywall-plan-${initialPlan}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+  }, [initialPlan])
+
+  useEffect(() => subscribeToFreeGenerationChanges(() => setCurrentPackage(getCurrentPackage())), [])
 
   const confirmPurchase = () => {
     if (!selectedPlan) return
-    addPurchasedGenerations(selectedPlan.generations)
+    addPurchasedGenerations(selectedPlan.generations, selectedPlan.name as PackageName)
     setPurchaseMessage(`${selectedPlan.generations.toLocaleString()} generations added to your account.`)
     setSelectedPlan(null)
   }
@@ -99,7 +120,7 @@ function PaywallPage({ onBack }: { onBack: () => void }) {
       </div>
     </section>
     <section className="paywall-plans" aria-label="Pricing plans">
-      {plans.map((plan) => <PlanCard key={plan.name} plan={plan} billingPeriod={billingPeriod} onSelect={setSelectedPlan} />)}
+      {plans.map((plan) => <PlanCard key={plan.name} plan={plan} billingPeriod={billingPeriod} isSelected={activePlan === plan.slug} isCurrentPackage={currentPackage === plan.name} onSelect={(selected) => { setActivePlan(plan.slug); setSelectedPlan(selected) }} />)}
     </section>
     {purchaseMessage && <p className="paywall-purchase-message" role="status">{purchaseMessage}</p>}
     {selectedPlan && <div className="paywall-confirm-overlay" role="presentation">

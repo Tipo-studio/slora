@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { ChevronLeft, ChevronRight, Download, Maximize2, RotateCcw, Sparkles, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, Maximize2, Pencil, Shirt, X } from 'lucide-react'
 import { createGeneration, getGeneration, getTool, uploadSourceImage, type Generation, type ImageReference, type ToolDefinition } from '../../lib/sivitai'
 import { getDeviceId, getFreeGenerationsRemaining, getPurchasedGenerationsRemaining, markFreeGenerationUsed, resetFreeGenerationsForTesting } from '../../lib/freeGeneration'
+import { addLibraryImages } from '../../lib/imageLibrary'
 
 const TRYON_TOOLS = [
   { id: 'try-on', slug: 'try-on', label: 'Try-on', description: 'See yourself wearing dresses, streetwear, bikinis, formal wear and more.' },
@@ -18,9 +19,11 @@ type SavedTryOnSession = {
   generation: Generation | null
   guestImages: Record<string, GuestImage | undefined>
   prompt: string
+  isLimitedGeneration: boolean
 }
 
 const TRYON_SESSION_STORAGE_KEY = 'slora-tryon-session'
+const USE_MOCK_GENERATION = import.meta.env.VITE_MOCK_GENERATION === 'true'
 
 function getSavedTryOnSession(): SavedTryOnSession | null {
   try {
@@ -33,6 +36,7 @@ function getSavedTryOnSession(): SavedTryOnSession | null {
       generation: session.generation?.generationId && session.generation.status ? session.generation : null,
       guestImages: session.guestImages ?? {},
       prompt: session.prompt ?? '',
+      isLimitedGeneration: session.isLimitedGeneration ?? false,
     }
   } catch {
     window.sessionStorage.removeItem(TRYON_SESSION_STORAGE_KEY)
@@ -46,14 +50,19 @@ function Corner({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) {
   return <svg aria-hidden="true" className={`absolute ${place[position]}`} width="var(--corner)" height="var(--corner)" viewBox="0 0 12 12" fill="none"><path d={paths[position]} stroke="currentColor" strokeWidth="1.5" /></svg>
 }
 
-function TryOnUploadCard({ label, samples, previewUrl, isUploading, onFileChange }: { label: string; samples: readonly string[]; previewUrl: string | null; isUploading: boolean; onFileChange: (file: File | null) => void }) {
+function TryOnUploadCard({ label, samples, previewUrl, isUploading, onFileChange, onSampleSelect }: { label: string; samples: readonly string[]; previewUrl: string | null; isUploading: boolean; onFileChange: (file: File | null) => void; onSampleSelect: (sampleUrl: string) => void }) {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => onFileChange(event.target.files?.[0] ?? null)
+  const selectSample = (event: React.MouseEvent<HTMLButtonElement>, sampleUrl: string) => {
+    event.preventDefault()
+    event.stopPropagation()
+    onSampleSelect(sampleUrl)
+  }
   return <label className={`tryon-upload-card ${previewUrl ? 'has-preview' : ''} ${isUploading ? 'is-uploading' : ''}`}>
     <input type="file" accept="image/png,image/jpeg" className="tryon-file-input" onChange={handleFileChange} disabled={isUploading} />
     <img className="tryon-upload-grid" src="/images/tryon/upload-grid.svg" alt="" aria-hidden="true" />
     {previewUrl && <img className="tryon-upload-preview" src={previewUrl} alt={`${label} preview`} />}
     <div className="tryon-upload-content">
-      {!previewUrl && <><span className="tryon-upload-icon"><img src="/images/tryon/image-icon.svg" alt="" aria-hidden="true" /></span><span className="tryon-upload-note">jpeg, png formats up to 5Mb</span><span className="tryon-samples">{samples.map((sample) => <img key={sample} src={sample} alt="" />)}</span></>}
+      {!previewUrl && <><span className="tryon-upload-icon"><img src="/images/tryon/image-icon.svg" alt="" aria-hidden="true" /></span><span className="tryon-upload-note">jpeg, png formats up to 5Mb</span><span className="tryon-samples" aria-label={`Suggested ${label} images`}>{samples.map((sample, index) => <button key={sample} type="button" className="tryon-sample-button" aria-label={`Use suggested image ${index + 1}`} onMouseDown={(event) => event.preventDefault()} onClick={(event) => selectSample(event, sample)}><img src={sample} alt="" /></button>)}</span></>}
       <span className="tryon-upload-title">{isUploading ? 'Uploading…' : previewUrl ? 'Change image' : label}</span>
     </div>
   </label>
@@ -72,9 +81,9 @@ async function toDataUrl(file: File) {
   })
 }
 
-function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObject<HTMLElement | null>; user: User | null; onRequestLogin: () => void }) {
+function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initialTool, initialImageUrl }: { sectionRef: RefObject<HTMLElement | null>; user: User | null; onRequestLogin: () => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio') => void; initialTool?: 'try-on' | 'magic-editor'; initialImageUrl?: string | null }) {
   const [savedSession] = useState(getSavedTryOnSession)
-  const [activeTool, setActiveTool] = useState<TryOnTool>(() => savedSession?.activeTool ?? 'try-on')
+  const [activeTool, setActiveTool] = useState<TryOnTool>(() => initialTool ?? savedSession?.activeTool ?? 'try-on')
   const [toolDefinition, setToolDefinition] = useState<ToolDefinition | null>(null)
   const [personPreviewUrl, setPersonPreviewUrl] = useState<string | null>(null)
   const [clothesPreviewUrl, setClothesPreviewUrl] = useState<string | null>(null)
@@ -87,6 +96,7 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
   const [error, setError] = useState('')
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false)
   const [selectedResultIndex, setSelectedResultIndex] = useState(0)
+  const [isLimitedGeneration, setIsLimitedGeneration] = useState(() => savedSession?.isLimitedGeneration ?? false)
   const previewUrlsRef = useRef({ person: null as string | null, clothes: null as string | null })
   const activeToolConfig = TRYON_TOOLS.find(({ id }) => id === activeTool) ?? TRYON_TOOLS[0]
   const isGenerating = generation?.status === 'queued' || generation?.status === 'processing'
@@ -94,16 +104,18 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
   const resultOutputs = generation?.outputs.filter((output) => output.type === 'image' && output.url) ?? []
   const resultOutput = resultOutputs[selectedResultIndex] ?? resultOutputs[0]
   const isGuestResult = Boolean(resultOutput?.url && (!user || user.is_anonymous))
+  const isLimitResult = Boolean(resultOutput?.url && isLimitedGeneration)
+  const isLockedResult = isGuestResult || isLimitResult
 
   useEffect(() => () => Object.values(previewUrlsRef.current).forEach((url) => { if (url) URL.revokeObjectURL(url) }), [])
 
   useEffect(() => {
     try {
-      window.sessionStorage.setItem(TRYON_SESSION_STORAGE_KEY, JSON.stringify({ activeTool, generation, guestImages, prompt } satisfies SavedTryOnSession))
+      window.sessionStorage.setItem(TRYON_SESSION_STORAGE_KEY, JSON.stringify({ activeTool, generation, guestImages, prompt, isLimitedGeneration } satisfies SavedTryOnSession))
     } catch {
       setError('Your browser could not save this trial session. Keep this tab open to preserve the current generation.')
     }
-  }, [activeTool, generation, guestImages, prompt])
+  }, [activeTool, generation, guestImages, prompt, isLimitedGeneration])
 
   useEffect(() => {
     setToolDefinition(null)
@@ -117,9 +129,35 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
   useEffect(() => {
     if (!toolDefinition) return
     const imageFields = toolDefinition.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden)
+    if (initialImageUrl && imageFields[0] && !personPreviewUrl) {
+      setPersonPreviewUrl(initialImageUrl)
+      return
+    }
     if (!personPreviewUrl) setPersonPreviewUrl(guestImages[imageFields[0]?.name]?.dataUrl ?? null)
     if (!clothesPreviewUrl) setClothesPreviewUrl(guestImages[imageFields[1]?.name]?.dataUrl ?? null)
-  }, [clothesPreviewUrl, guestImages, personPreviewUrl, toolDefinition])
+  }, [clothesPreviewUrl, guestImages, initialImageUrl, personPreviewUrl, toolDefinition])
+
+  useEffect(() => {
+    if (!initialImageUrl || !toolDefinition) return
+    const imageField = toolDefinition.inputSchema.fields.find((field) => field.type === 'image' && !field.hidden)
+    if (!imageField || guestImages[imageField.name]) return
+    let isCurrent = true
+
+    void fetch(initialImageUrl)
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Unable to load the selected library image.')
+        const blob = await response.blob()
+        return toDataUrl(new File([blob], 'library-image.png', { type: blob.type || 'image/png' }))
+      })
+      .then((dataUrl) => {
+        if (isCurrent) setGuestImages((current) => ({ ...current, [imageField.name]: { dataUrl, name: 'library-image.png' } }))
+      })
+      .catch(() => {
+        if (isCurrent) setError('Unable to prepare the selected library image.')
+      })
+
+    return () => { isCurrent = false }
+  }, [guestImages, initialImageUrl, toolDefinition])
 
   useEffect(() => {
     if (!generationId || !isGenerating) return
@@ -142,6 +180,11 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
   }, [resultOutputs.length, selectedResultIndex])
 
   useEffect(() => {
+    if (!user || user.is_anonymous || generation?.status !== 'completed') return
+    addLibraryImages(user.id, generation.outputs.filter((output) => output.type === 'image' && output.url).map((output) => output.url!))
+  }, [generation, user])
+
+  useEffect(() => {
     if (!isFullPreviewOpen) return
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setIsFullPreviewOpen(false)
@@ -154,6 +197,22 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
       window.removeEventListener('keydown', closeOnEscape)
     }
   }, [isFullPreviewOpen])
+
+  const selectSuggestedImage = async (slot: ImageSlot, fieldName: string, sampleUrl: string) => {
+    setError('')
+    setUploadingFieldName(fieldName)
+    try {
+      const response = await fetch(sampleUrl)
+      if (!response.ok) throw new Error('Unable to load the suggested image.')
+      const blob = await response.blob()
+      const extension = blob.type === 'image/jpeg' ? 'jpg' : 'png'
+      await updateImage(slot, fieldName, new File([blob], `suggested-image.${extension}`, { type: blob.type || 'image/png' }))
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to use the suggested image.')
+    } finally {
+      setUploadingFieldName(null)
+    }
+  }
 
   const updateImage = async (slot: ImageSlot, fieldName: string, file: File | null) => {
     const currentUrl = previewUrlsRef.current[slot]
@@ -184,7 +243,6 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
   }
 
   const generate = async () => {
-    if (freeGenerationsRemaining <= 0) { setError('Your free generation has already been used on this device and network.'); return }
     if (!activeToolConfig.slug || !toolDefinition) { setError('This tool is not available yet.'); return }
     const inputs: Record<string, unknown> = {}
     for (const field of toolDefinition.inputSchema.fields) {
@@ -203,12 +261,35 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
     }
     setError('')
     try {
-      const job = await createGeneration(activeToolConfig.slug, inputs, getDeviceId(), getPurchasedGenerationsRemaining() === 0)
+      const purchasedGenerationsRemaining = getPurchasedGenerationsRemaining()
+      const isLimitedGeneration = freeGenerationsRemaining <= 0 && purchasedGenerationsRemaining <= 0
+      setIsLimitedGeneration(isLimitedGeneration)
+
+      if (USE_MOCK_GENERATION) {
+        setSelectedResultIndex(0)
+        setGeneration({
+          generationId: `mock-${crypto.randomUUID()}`,
+          status: 'completed',
+          outputs: [{
+            id: `mock-result-${crypto.randomUUID()}`,
+            type: 'image',
+            url: '/images/tryon/mock-result.png',
+            downloadUrl: '/images/tryon/mock-result.png',
+          }],
+          errorMessage: null,
+        })
+        markFreeGenerationUsed()
+        setFreeGenerationsRemaining(getFreeGenerationsRemaining())
+        return
+      }
+
+      const job = await createGeneration(activeToolConfig.slug, inputs, getDeviceId(), purchasedGenerationsRemaining === 0)
       markFreeGenerationUsed()
       setFreeGenerationsRemaining(getFreeGenerationsRemaining())
       setSelectedResultIndex(0)
       setGeneration({ ...job, outputs: [], errorMessage: null })
     } catch (requestError) {
+      setIsLimitedGeneration(false)
       setError(requestError instanceof Error ? requestError.message : 'Unable to start generation.')
     }
   }
@@ -217,13 +298,16 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
     if (tool === activeTool) return
     setGeneration(null)
     setSelectedResultIndex(0)
+    setIsLimitedGeneration(false)
     setActiveTool(tool)
   }
 
   const resetGenerationForTesting = () => {
     resetFreeGenerationsForTesting()
     setFreeGenerationsRemaining(getFreeGenerationsRemaining())
-    setError('Generation limit reset for local testing.')
+    setIsLimitedGeneration(false)
+    setGeneration(null)
+    setError('Generation reset to 1 for local testing.')
   }
 
   const startNewSessionWithResult = async (tool: TryOnTool) => {
@@ -282,8 +366,8 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
     <img className="tryon-background" src="/images/tryon/background.png" alt="" aria-hidden="true" />
     <div className="tryon-tool-intro"><nav className="tryon-tool-menu" aria-label="Creative tools">{TRYON_TOOLS.map(({ id, label }) => <button key={id} type="button" className={activeTool === id ? 'is-active' : ''} aria-current={activeTool === id ? 'page' : undefined} onClick={() => selectTool(id)}><Corner position="tl" /><Corner position="tr" /><Corner position="bl" /><Corner position="br" /><span>{label}</span></button>)}</nav><p>{activeToolConfig.description}</p></div>
     <div className="tryon-layout"><div className="tryon-controls"><div className={`tryon-upload-stack ${activeTool === 'ai-studio' ? 'is-ai-studio' : ''}`}>
-      {toolUsesImages && <TryOnUploadCard label={toolDefinition?.inputSchema.fields.find((field) => field.type === 'image' && !field.hidden)?.label ?? 'Upload image'} samples={personSamples} previewUrl={personPreviewUrl} isUploading={uploadingFieldName === toolDefinition?.inputSchema.fields.find((field) => field.type === 'image' && !field.hidden)?.name} onFileChange={(file) => { const field = toolDefinition?.inputSchema.fields.find((item) => item.type === 'image' && !item.hidden); if (field) void updateImage('person', field.name, file) }} />}
-      {toolUsesImages && toolDefinition?.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden).length === 2 && <TryOnUploadCard label={toolDefinition.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden)[1]?.label ?? 'Upload reference'} samples={clothesSamples} previewUrl={clothesPreviewUrl} isUploading={uploadingFieldName === toolDefinition.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden)[1]?.name} onFileChange={(file) => { const field = toolDefinition.inputSchema.fields.filter((item) => item.type === 'image' && !item.hidden)[1]; if (field) void updateImage('clothes', field.name, file) }} />}
+      {toolUsesImages && <TryOnUploadCard label={toolDefinition?.inputSchema.fields.find((field) => field.type === 'image' && !field.hidden)?.label ?? 'Upload image'} samples={personSamples} previewUrl={personPreviewUrl} isUploading={uploadingFieldName === toolDefinition?.inputSchema.fields.find((field) => field.type === 'image' && !field.hidden)?.name} onFileChange={(file) => { const field = toolDefinition?.inputSchema.fields.find((item) => item.type === 'image' && !item.hidden); if (field) void updateImage('person', field.name, file) }} onSampleSelect={(sampleUrl) => { const field = toolDefinition?.inputSchema.fields.find((item) => item.type === 'image' && !item.hidden); if (field) void selectSuggestedImage('person', field.name, sampleUrl) }} />}
+      {toolUsesImages && toolDefinition?.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden).length === 2 && <TryOnUploadCard label={toolDefinition.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden)[1]?.label ?? 'Upload reference'} samples={clothesSamples} previewUrl={clothesPreviewUrl} isUploading={uploadingFieldName === toolDefinition.inputSchema.fields.filter((field) => field.type === 'image' && !field.hidden)[1]?.name} onFileChange={(file) => { const field = toolDefinition.inputSchema.fields.filter((item) => item.type === 'image' && !item.hidden)[1]; if (field) void updateImage('clothes', field.name, file) }} onSampleSelect={(sampleUrl) => { const field = toolDefinition.inputSchema.fields.filter((item) => item.type === 'image' && !item.hidden)[1]; if (field) void selectSuggestedImage('clothes', field.name, sampleUrl) }} />}
       {toolUsesPrompt && <MagicPromptCard prompt={prompt} onPromptChange={setPrompt} />}
       <button type="button" className="tryon-cta button-primary" onClick={() => void generate()} disabled={isGenerating || uploadingFieldName !== null}><img src="/images/tryon/try-now-icon.svg" alt="" aria-hidden="true" />{isGenerating ? 'GENERATING…' : 'TRY NOW'}</button>
       <p className="tryon-free-count" aria-live="polite"><strong>{freeGenerationsRemaining}</strong> free generation{freeGenerationsRemaining === 1 ? '' : 's'} remaining</p>
@@ -291,13 +375,14 @@ function TryOnSection({ sectionRef, user, onRequestLogin }: { sectionRef: RefObj
       {error && <p className="tryon-status tryon-status-error" role="alert">{error}</p>}
       {generation?.status === 'failed' && <p className="tryon-status tryon-status-error" role="alert">{generation.errorMessage ?? 'Generation failed. Please try again.'}</p>}
     </div></div>
-    <div className="tryon-preview" aria-label="Try-on result preview"><div key={`${activeTool}-${generation?.generationId ?? 'default'}-${isGenerating ? 'loading' : resultOutput?.url ? 'result' : 'idle'}`} className={`tryon-phone-frame ${isGenerating ? 'is-loading' : ''} ${resultOutput?.url ? 'has-result' : ''} ${resultOutputs.length > 1 ? 'has-multiple-results' : ''} ${isGuestResult ? 'is-locked' : ''}`} aria-label={isGenerating ? 'Generating image' : undefined}>
-      {resultOutput?.url ? isGuestResult ? <img className="tryon-result-image" src={resultOutput.url} alt="" aria-hidden="true" /> : <button type="button" className="tryon-result-preview-button" onClick={() => setIsFullPreviewOpen(true)} aria-label="Open full image preview"><img className="tryon-result-image" src={resultOutput.url} alt="Generated result" /><span><Maximize2 size={18} strokeWidth={1.75} />View full image</span></button> : isGenerating ? <img className={`tryon-genimg-placeholder ${loadingPreviewUrl ? 'has-uploaded-image' : ''}`} src={loadingPreviewUrl ?? '/images/tryon/genimg-loading.svg'} alt="" aria-hidden="true" /> : <img src="/images/tryon/tryon-phone-frame.png" alt="" aria-hidden="true" />}
+    <div className="tryon-preview" aria-label="Try-on result preview"><div key={`${activeTool}-${generation?.generationId ?? 'default'}-${isGenerating ? 'loading' : resultOutput?.url ? 'result' : 'idle'}`} className={`tryon-phone-frame ${isGenerating ? 'is-loading' : ''} ${resultOutput?.url ? 'has-result' : ''} ${resultOutputs.length > 1 ? 'has-multiple-results' : ''} ${isLockedResult ? 'is-locked' : ''}`} aria-label={isGenerating ? 'Generating image' : undefined}>
+      {resultOutput?.url ? isLockedResult ? <img className="tryon-result-image" src={resultOutput.url} alt="" aria-hidden="true" /> : <button type="button" className="tryon-result-preview-button" onClick={() => setIsFullPreviewOpen(true)} aria-label="Open full image preview"><img className="tryon-result-image" src={resultOutput.url} alt="Generated result" /><span><Maximize2 size={18} strokeWidth={1.75} />View full image</span></button> : isGenerating ? <img className={`tryon-genimg-placeholder ${loadingPreviewUrl ? 'has-uploaded-image' : ''}`} src={loadingPreviewUrl ?? '/images/tryon/genimg-loading.svg'} alt="" aria-hidden="true" /> : <img src="/images/tryon/tryon-phone-frame.png" alt="" aria-hidden="true" />}
       {isGuestResult && <div className="tryon-login-gate"><p>YOUR RESULT IS READY</p><strong>Sign in to reveal your image</strong><button type="button" className="button-primary" onClick={onRequestLogin}>SIGN IN TO REVEAL</button></div>}
-    </div>{resultOutputs.length > 1 && <div className="tryon-result-selector" role="tablist" aria-label="Generated image results"><button type="button" className="tryon-result-arrow" onClick={() => setSelectedResultIndex((index) => (index - 1 + resultOutputs.length) % resultOutputs.length)} aria-label="Show previous result"><ChevronLeft size={16} strokeWidth={1.75} /></button>{resultOutputs.map((output, index) => <button key={output.id} type="button" role="tab" aria-selected={selectedResultIndex === index} className={selectedResultIndex === index ? 'is-active' : ''} onClick={() => setSelectedResultIndex(index)} aria-label={`Show result ${index + 1}`}><img src={output.url ?? ''} alt={`Generated result ${index + 1}`} /></button>)}<button type="button" className="tryon-result-arrow" onClick={() => setSelectedResultIndex((index) => (index + 1) % resultOutputs.length)} aria-label="Show next result"><ChevronRight size={16} strokeWidth={1.75} /></button></div>}{resultOutput?.url && !isGuestResult && <div className="tryon-result-actions" aria-label="Generated image actions">
+      {isLimitResult && !isGuestResult && <div className="tryon-login-gate tryon-limit-gate"><p>YOUR FREE GENERATION IS USED</p><strong>Unlock your result and keep creating</strong><div><button type="button" className="button-primary" onClick={() => onOpenPaywall('studio')}>UPGRADE</button><button type="button" className="button-secondary" onClick={() => onOpenPaywall('one-time')}>BUY ONE TIME</button></div></div>}
+    </div>{resultOutputs.length > 1 && <div className="tryon-result-selector" role="tablist" aria-label="Generated image results"><button type="button" className="tryon-result-arrow" onClick={() => setSelectedResultIndex((index) => (index - 1 + resultOutputs.length) % resultOutputs.length)} aria-label="Show previous result"><ChevronLeft size={16} strokeWidth={1.75} /></button>{resultOutputs.map((output, index) => <button key={output.id} type="button" role="tab" aria-selected={selectedResultIndex === index} className={selectedResultIndex === index ? 'is-active' : ''} onClick={() => setSelectedResultIndex(index)} aria-label={`Show result ${index + 1}`}><img src={output.url ?? ''} alt={`Generated result ${index + 1}`} /></button>)}<button type="button" className="tryon-result-arrow" onClick={() => setSelectedResultIndex((index) => (index + 1) % resultOutputs.length)} aria-label="Show next result"><ChevronRight size={16} strokeWidth={1.75} /></button></div>}{resultOutput?.url && !isLockedResult && <div className="tryon-result-actions" aria-label="Generated image actions">
       <button type="button" className="tryon-result-icon-button" onClick={downloadResult} aria-label="Download result"><Download size={16} strokeWidth={1.75} /></button>
-      <button type="button" className="tryon-result-action-button" onClick={() => void startNewSessionWithResult('magic-editor')} disabled={uploadingFieldName !== null}><Sparkles size={16} strokeWidth={1.75} />Magic edit</button>
-      <button type="button" className="tryon-result-action-button" onClick={() => void startNewSessionWithResult('try-on')} disabled={uploadingFieldName !== null}><RotateCcw size={16} strokeWidth={1.75} />Try-on again</button>
+      <button type="button" className="tryon-result-action-button" onClick={() => void startNewSessionWithResult('magic-editor')} disabled={uploadingFieldName !== null}><Pencil size={16} strokeWidth={1.75} />Magic edit</button>
+      <button type="button" className="tryon-result-action-button" onClick={() => void startNewSessionWithResult('try-on')} disabled={uploadingFieldName !== null}><Shirt size={16} strokeWidth={1.75} />Try-on again</button>
     </div>}</div><div className="tryon-model-illustration" aria-hidden="true"><img className="tryon-model" src="/images/tryon/model.png" alt="" /></div></div>
     {isFullPreviewOpen && resultOutput?.url && <div className="tryon-full-preview" role="dialog" aria-modal="true" aria-label="Full generated image preview"><button type="button" className="tryon-full-preview-backdrop" onClick={() => setIsFullPreviewOpen(false)} aria-label="Close full image preview" /><div className="tryon-full-preview-content"><button type="button" className="tryon-full-preview-close" onClick={() => setIsFullPreviewOpen(false)} aria-label="Close full image preview"><X size={20} strokeWidth={1.75} /></button><img src={resultOutput.url} alt="Generated result full preview" /></div></div>}
   </section>
