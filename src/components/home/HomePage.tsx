@@ -6,6 +6,7 @@ import { ImageRevealBackground } from './ImageRevealBackground'
 import { CoreInteractiveGrid } from '../../features/core/CoreInteractiveGrid'
 import { TryOnSection } from '../../features/tryon/TryOnSection'
 import { LoginOverlay } from '../../features/auth/LoginOverlay'
+import { PromoCodeRedeemer } from './PromoCodeRedeemer'
 import { getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
 
 const BG_IMAGE_1 = '/images/lgpsm-background-base.png'
@@ -36,6 +37,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOu
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(() => getFreeGenerationsRemaining())
   const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
   const [activeCoreTab, setActiveCoreTab] = useState(0)
+  const [promoGenerationUpdate, setPromoGenerationUpdate] = useState<{ granted: number; remaining: number } | null>(null)
   const accountMenuRef = useRef<HTMLDivElement>(null)
   const coreVideoRef = useRef<HTMLVideoElement>(null)
   const isAuthenticatedUser = Boolean(user && !user.is_anonymous)
@@ -130,6 +132,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOu
                 <div className="home2-account-details"><span title={user.email}>{user.email}</span><div><small>{currentPackage ? `${currentPackage} package` : 'Free plan'}</small><button type="button" onClick={() => onOpenPaywall('studio')}>Upgrade</button></div></div>
               </div>
               <button type="button" className="home2-account-item" role="menuitem" onClick={scrollToTryOn}><span><Sparkles size={16} strokeWidth={1.5} />Generation</span><strong><Sparkles size={10} strokeWidth={1.5} />{freeGenerationsRemaining}</strong></button>
+              <PromoCodeRedeemer onRedeemed={({ granted, remaining }) => { setFreeGenerationsRemaining(remaining); setPromoGenerationUpdate({ granted, remaining }) }} />
               <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenLibrary}><span><Images size={16} strokeWidth={1.5} />My library</span></button>
               <button type="button" className="home2-account-item" role="menuitem"><span><CircleUserRound size={16} strokeWidth={1.5} />My account</span></button>
               <div className="home2-account-divider" />
@@ -196,6 +199,20 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOu
     <section className="relative z-10 mx-[var(--pad-x)] mb-[var(--pad-y)] aspect-[4/5] border border-gray-200 bg-cover bg-center sm:aspect-[16/9] lg:hidden" style={{ backgroundImage: `url("${BG_IMAGE_1}")` }} aria-label="LGPSM collection preview" />
 
     {isLoginOpen && <LoginOverlay onClose={() => setIsLoginOpen(false)} onAuthenticated={(authenticatedUser) => { onAuthenticated(authenticatedUser); setIsLoginOpen(false) }} />}
+    {promoGenerationUpdate !== null && <div className="home2-generation-update" role="dialog" aria-modal="true" aria-labelledby="home2-generation-update-title">
+      <button type="button" className="home2-generation-update-backdrop" onClick={() => setPromoGenerationUpdate(null)} aria-label="Close generation update" />
+      <div className="home2-generation-update-panel">
+        <button type="button" className="home2-generation-update-close" onClick={() => setPromoGenerationUpdate(null)} aria-label="Close generation update">×</button>
+        <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
+        <p>Promo code applied</p>
+        <h2 id="home2-generation-update-title">Generation balance updated</h2>
+        <div className="home2-generation-update-summary">
+          <span><small>Added</small><strong>+{promoGenerationUpdate.granted}</strong></span>
+          <span><small>Available now</small><strong><Sparkles size={18} strokeWidth={1.5} />{promoGenerationUpdate.remaining}</strong></span>
+        </div>
+        <button type="button" className="button-primary" onClick={() => { setPromoGenerationUpdate(null); scrollToTryOn() }}>CREATE NOW</button>
+      </div>
+    </div>}
 
   </div>
 }

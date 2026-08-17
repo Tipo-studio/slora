@@ -154,6 +154,20 @@ export async function uploadSourceImage(dataUrl: string, name: string) {
   return getImageReference(response)
 }
 
+export type PromoRedemptionResponse = {
+  code: string
+  generationsGranted: number
+  creditsRemaining: number
+  package: string | null
+}
+
+export function redeemPromoCode(code: string) {
+  return request<PromoRedemptionResponse>('/api/promotions/redeem', {
+    method: 'POST',
+    body: JSON.stringify({ code: code.trim().toUpperCase() }),
+  }, 'required')
+}
+
 export function createGeneration(slug: string, inputs: Record<string, unknown>, deviceId: string, freeGeneration: boolean) {
   return request<Pick<Generation, 'generationId' | 'status'>>(`/api/tools/${encodeURIComponent(slug)}/jobs`, {
     method: 'POST',

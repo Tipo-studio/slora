@@ -129,7 +129,43 @@ button, input, textarea { font: inherit; }
 .home2-account-item:hover { background: var(--color-surface); }
 .home2-account-item span { display: inline-flex; align-items: center; gap: 8px; }
 .home2-account-item strong { display: inline-flex; height: 20px; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid var(--color-border); border-radius: 8px; background: #e2e8f0; color: var(--color-ink); font: 400 10px/14px var(--font-body); }
-.home2-account-divider { height: 1px; margin: 8px 0; background: var(--color-surface); }
+.home2-account-divider { height: 1px; margin: 8px 16px; background: var(--color-border); }
+.home2-promo-trigger { display: flex; width: calc(100% - 16px); min-height: 40px; align-items: center; gap: 8px; margin: 0 8px; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--color-ink); font: 500 13px/1 var(--font-body); text-align: left; cursor: pointer; }
+.home2-promo-trigger:hover { background: var(--color-surface); }
+.home2-promo-trigger.is-redeemed { color: #15803d; }
+.home2-promo-dialog { position: fixed; inset: 0; z-index: 130; display: grid; place-items: center; padding: 16px; }
+.home2-promo-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: rgba(8, 13, 20, .45); backdrop-filter: blur(4px); }
+.home2-promo-panel { position: relative; z-index: 1; display: grid; width: min(400px, 100%); gap: 12px; padding: 24px; border: 1px solid rgba(15, 23, 42, .14); border-radius: 16px; background: #fff; box-shadow: 0 24px 72px rgba(8, 13, 20, .24); }
+.home2-promo-panel > svg { color: var(--color-ink); }
+.home2-promo-panel h2, .home2-promo-panel p { margin: 0; }
+.home2-promo-panel h2 { font: 600 18px/1.2 var(--font-body); }
+.home2-promo-panel > p { color: var(--color-muted); font: 400 13px/1.5 var(--font-body); }
+.home2-promo-panel > label { margin-top: 4px; color: var(--color-muted); font: 600 10px/1 var(--font-body); letter-spacing: .12em; text-transform: uppercase; }
+.home2-promo-close { position: absolute; top: 14px; right: 14px; display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--color-muted); cursor: pointer; }
+.home2-promo-close:hover { background: var(--color-surface); color: var(--color-ink); }
+.home2-promo-field { display: flex; gap: 8px; }
+.home2-promo-field input { min-width: 0; height: 42px; flex: 1; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 8px; background: #fff; color: var(--color-ink); font: 500 13px/1 var(--font-body); letter-spacing: .04em; text-transform: uppercase; outline: none; }
+.home2-promo-field input:focus { border-color: var(--color-ink); box-shadow: 0 0 0 3px rgba(8, 13, 20, .1); }
+.home2-promo-field input:disabled { background: var(--color-surface); color: #64748b; }
+.home2-promo-field button { min-width: 72px; height: 42px; border: 1px solid var(--color-ink); border-radius: 8px; background: var(--color-ink); color: #fff; font: 600 10px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.home2-promo-field button:disabled { cursor: default; opacity: .55; }
+.home2-promo-panel .is-success { color: #15803d; }
+.home2-promo-panel .is-error { color: #b91c1c; }
+.home2-generation-update { position: fixed; inset: 0; z-index: 140; display: grid; place-items: center; padding: 16px; }
+.home2-generation-update-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: rgba(8, 13, 20, .52); backdrop-filter: blur(5px); }
+.home2-generation-update-panel { position: relative; z-index: 1; display: grid; width: min(420px, 100%); justify-items: center; gap: 14px; padding: 32px 24px 24px; border: 1px solid rgba(255, 255, 255, .32); border-radius: 20px; background: linear-gradient(145deg, #111827, #080d14); box-shadow: 0 28px 80px rgba(0, 0, 0, .42); color: #fff; text-align: center; }
+.home2-generation-update-panel > svg { color: #facc15; }
+.home2-generation-update-panel p, .home2-generation-update-panel h2 { margin: 0; }
+.home2-generation-update-panel p { color: #cbd5e1; font: 600 10px/1 var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
+.home2-generation-update-panel h2 { font: 600 24px/1.2 var(--font-body); }
+.home2-generation-update-summary { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.home2-generation-update-summary > span { display: grid; gap: 7px; padding: 12px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 10px; background: rgba(255, 255, 255, .1); }
+.home2-generation-update-summary small { color: #cbd5e1; font: 600 9px/1 var(--font-body); letter-spacing: .1em; text-transform: uppercase; }
+.home2-generation-update-summary strong { display: inline-flex; justify-content: center; align-items: center; gap: 6px; font: 600 20px/1 var(--font-body); }
+.home2-generation-update-summary strong svg { color: #facc15; }
+.home2-generation-update-panel .button-primary { margin-top: 6px; }
+.home2-generation-update-close { position: absolute; top: 12px; right: 12px; display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #cbd5e1; font-size: 22px; line-height: 1; cursor: pointer; }
+.home2-generation-update-close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
 @media (max-width: 640px) { .home2-avatar-button { width: 44px; height: 44px; } .home2-account-dropdown { right: -4px; width: min(236px, calc(100vw - 24px)); } }
 .home2-header,
 .core-functions-heading p,

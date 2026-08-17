@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { ArrowLeft, X } from 'lucide-react'
+import { ArrowLeft, Sparkles, X } from 'lucide-react'
 import { ImageRevealBackground } from '../../components/home/ImageRevealBackground'
-import { addPurchasedGenerations, getCurrentPackage, subscribeToFreeGenerationChanges, type PackageName } from '../../lib/freeGeneration'
+import { addPurchasedGenerations, getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges, type PackageName } from '../../lib/freeGeneration'
 import { CoreInteractiveGrid } from '../core/CoreInteractiveGrid'
 
 type PlanSlug = 'one-time' | 'creator' | 'studio'
@@ -90,6 +90,7 @@ function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestL
   const [activePlan, setActivePlan] = useState<PlanSlug>('creator')
   const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
   const [purchaseMessage, setPurchaseMessage] = useState('')
+  const [purchaseUpdate, setPurchaseUpdate] = useState<{ plan: PackageName; added: number; remaining: number } | null>(null)
 
   useEffect(() => {
     if (!initialPlan) return
@@ -109,10 +110,11 @@ function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestL
       return
     }
 
-    addPurchasedGenerations(selectedPlan.generations, selectedPlan.name as PackageName)
+    const packageName = selectedPlan.name as PackageName
+    addPurchasedGenerations(selectedPlan.generations, packageName)
     setPurchaseMessage(`${selectedPlan.generations.toLocaleString()} generations added to your account.`)
+    setPurchaseUpdate({ plan: packageName, added: selectedPlan.generations, remaining: getFreeGenerationsRemaining() })
     setSelectedPlan(null)
-    window.setTimeout(onPurchaseComplete, 600)
   }
 
   return <main className="paywall-page">
@@ -142,6 +144,21 @@ function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestL
         <p>{user && !user.is_anonymous ? <>Payment is temporarily skipped for testing. Confirming will add the generations from the <strong>{selectedPlan.name}</strong> plan to this account.</> : 'Purchases and package benefits are available only to signed-in accounts.'}</p>
         <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)}>Cancel</button><button type="button" className="button-primary" onClick={confirmPurchase}>{user && !user.is_anonymous ? 'Confirm purchase' : 'Sign in'}</button></div>
       </section>
+    </div>}
+    {purchaseUpdate && <div className="home2-generation-update" role="dialog" aria-modal="true" aria-labelledby="paywall-generation-update-title">
+      <button type="button" className="home2-generation-update-backdrop" onClick={() => setPurchaseUpdate(null)} aria-label="Close purchase update" />
+      <div className="home2-generation-update-panel">
+        <button type="button" className="home2-generation-update-close" onClick={() => setPurchaseUpdate(null)} aria-label="Close purchase update">×</button>
+        <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
+        <p>Plan activated</p>
+        <h2 id="paywall-generation-update-title">Generation balance updated</h2>
+        <p>{purchaseUpdate.plan} package</p>
+        <div className="home2-generation-update-summary">
+          <span><small>Added</small><strong>+{purchaseUpdate.added}</strong></span>
+          <span><small>Available now</small><strong>{purchaseUpdate.remaining}</strong></span>
+        </div>
+        <button type="button" className="button-primary" onClick={() => { setPurchaseUpdate(null); onPurchaseComplete() }}>START CREATING</button>
+      </div>
     </div>}
   </main>
 }
