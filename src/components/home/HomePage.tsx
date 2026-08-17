@@ -27,7 +27,7 @@ function scrollToSection(section: HTMLElement | null) {
   section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
 }
 
-function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOut, onAuthenticated }: { onOpenJoinBeta: () => void; onOpenLibrary: () => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio') => void; user: User | null; onSignOut: () => Promise<void>; onAuthenticated: (user: User) => void }) {
+function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOut, onAuthenticated }: { onOpenJoinBeta: () => void; onOpenLibrary: () => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio', returnToResult?: boolean) => void; user: User | null; onSignOut: () => Promise<void>; onAuthenticated: (user: User) => void }) {
   const nextSectionRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLElement>(null)
   const [isCoreFunctionVisible, setIsCoreFunctionVisible] = useState(false)
@@ -68,7 +68,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenPaywall, user, onSignOu
   }, [])
 
   useEffect(() => {
-    if (!requestedTool || !requestedImageUrl) return
+    if (!requestedTool && !requestedImageUrl && new URLSearchParams(window.location.search).get('return') !== 'tryon-result') return
     window.requestAnimationFrame(() => scrollToSection(tryOnSectionRef.current))
   }, [requestedImageUrl, requestedTool])
 

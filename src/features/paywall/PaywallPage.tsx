@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { ArrowLeft, X } from 'lucide-react'
 import { ImageRevealBackground } from '../../components/home/ImageRevealBackground'
 import { addPurchasedGenerations, getCurrentPackage, subscribeToFreeGenerationChanges, type PackageName } from '../../lib/freeGeneration'
@@ -15,6 +16,7 @@ type Plan = {
   included: string[]
   unavailable: string[]
   studioFeature?: string
+  customPrompt?: boolean
 }
 
 const plans: Plan[] = [
@@ -44,7 +46,8 @@ const plans: Plan[] = [
     credits: '700 Generations ~ $0.03 each',
     included: ['Everything Included', 'Results per Generation up to 8', 'HD Unlock', 'Unlimited History', 'Batch Generation', 'Bulk try-on', 'Queue priority'],
     unavailable: [],
-    studioFeature: 'Custome prompt',
+    studioFeature: 'Custom prompt',
+    customPrompt: true,
   },
 ]
 
@@ -61,13 +64,14 @@ function PlanCard({ plan, billingPeriod, isSelected, isCurrentPackage, onSelect 
   const monthlyPrice = Number.parseFloat(plan.price.slice(1))
   const price = isOneTimePlan || billingPeriod === 'monthly' ? monthlyPrice : monthlyPrice * .7
   const formattedPrice = `$${price.toFixed(2)}`
+  const billingLabel = isOneTimePlan ? 'one time' : billingPeriod === 'annual' ? 'per month, billed annually' : 'per month'
   const planSlug = plan.slug
   return <article id={`paywall-plan-${planSlug}`} className={`paywall-plan paywall-plan-${planSlug} ${isSelected ? 'is-selected' : ''} ${isCurrentPackage ? 'is-current-package' : ''}`}>
     {isCurrentPackage && <span className="paywall-current-package-badge">Current</span>}
     <div className="paywall-plan-main">
       <div className="paywall-plan-heading">
         <h2>{plan.name}</h2>
-        <div className="paywall-price"><strong>{formattedPrice}</strong>{!isOneTimePlan && <span>/month</span>}</div>
+        <div className="paywall-price"><strong>{formattedPrice}</strong><span>/{billingLabel}</span></div>
         <div className="paywall-credit"><img src="/images/paywall/credit.svg" alt="" aria-hidden="true" /><span>{plan.credits}</span></div>
       </div>
       <ul className="paywall-features">
@@ -80,7 +84,7 @@ function PlanCard({ plan, billingPeriod, isSelected, isCurrentPackage, onSelect 
   </article>
 }
 
-function PaywallPage({ onBack, initialPlan }: { onBack: () => void; initialPlan?: 'one-time' | 'creator' | 'studio' }) {
+function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestLogin }: { onBack: () => void; onPurchaseComplete: () => void; initialPlan?: 'one-time' | 'creator' | 'studio'; user: User | null; onRequestLogin: () => void }) {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
   const [activePlan, setActivePlan] = useState<PlanSlug>('creator')
@@ -99,9 +103,16 @@ function PaywallPage({ onBack, initialPlan }: { onBack: () => void; initialPlan?
 
   const confirmPurchase = () => {
     if (!selectedPlan) return
+    if (!user || user.is_anonymous) {
+      setSelectedPlan(null)
+      onRequestLogin()
+      return
+    }
+
     addPurchasedGenerations(selectedPlan.generations, selectedPlan.name as PackageName)
     setPurchaseMessage(`${selectedPlan.generations.toLocaleString()} generations added to your account.`)
     setSelectedPlan(null)
+    window.setTimeout(onPurchaseComplete, 600)
   }
 
   return <main className="paywall-page">
@@ -126,10 +137,10 @@ function PaywallPage({ onBack, initialPlan }: { onBack: () => void; initialPlan?
     {selectedPlan && <div className="paywall-confirm-overlay" role="presentation">
       <section className="paywall-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="paywall-confirm-title">
         <button type="button" className="paywall-confirm-close" onClick={() => setSelectedPlan(null)} aria-label="Close confirmation"><X size={20} strokeWidth={1.5} /></button>
-        <p className="paywall-confirm-eyebrow">Test purchase</p>
-        <h2 id="paywall-confirm-title">Add {selectedPlan.generations.toLocaleString()} generations?</h2>
-        <p>Payment is temporarily skipped for testing. Confirming will add the generations from the <strong>{selectedPlan.name}</strong> plan to this account.</p>
-        <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)}>Cancel</button><button type="button" className="button-primary" onClick={confirmPurchase}>Confirm purchase</button></div>
+        <p className="paywall-confirm-eyebrow">{user && !user.is_anonymous ? 'Test purchase' : 'Sign in required'}</p>
+        <h2 id="paywall-confirm-title">{user && !user.is_anonymous ? `Add ${selectedPlan.generations.toLocaleString()} generations?` : `Sign in to purchase ${selectedPlan.name}`}</h2>
+        <p>{user && !user.is_anonymous ? <>Payment is temporarily skipped for testing. Confirming will add the generations from the <strong>{selectedPlan.name}</strong> plan to this account.</> : 'Purchases and package benefits are available only to signed-in accounts.'}</p>
+        <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)}>Cancel</button><button type="button" className="button-primary" onClick={confirmPurchase}>{user && !user.is_anonymous ? 'Confirm purchase' : 'Sign in'}</button></div>
       </section>
     </div>}
   </main>
