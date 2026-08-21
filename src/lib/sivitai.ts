@@ -128,6 +128,17 @@ export function getTool(slug: string) {
   return request<ToolDefinition>(`/api/tools/${encodeURIComponent(slug)}`)
 }
 
+export type ReferralSummary = {
+  code: string
+  referralCode: string
+  successfulReferrals: number
+  bonusGenerations: number
+}
+
+export function requestReferralSummary() {
+  return request<ReferralSummary>('/api/referrals/me', {}, 'required')
+}
+
 type ImageUploadResponse = ImageReference | {
   data?: ImageReference
   image?: ImageReference
