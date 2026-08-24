@@ -129,14 +129,40 @@ export function getTool(slug: string) {
 }
 
 export type ReferralSummary = {
-  code: string
   referralCode: string
   successfulReferrals: number
   bonusGenerations: number
 }
 
-export function requestReferralSummary() {
-  return request<ReferralSummary>('/api/referrals/me', {}, 'required')
+export type ReferralLeaderboardItem = {
+  rank: number
+  account: string
+  totalReferrals: number
+}
+
+export type ReferralHistoryItem = {
+  friendAccount: string
+  joinedAt: string
+  status: 'successful' | 'pending'
+  reward: number | null
+}
+
+export async function requestReferralSummary() {
+  const { data, error } = await supabase.rpc('get_my_referral_summary')
+  if (error) throw new Error(error.message)
+  return data as ReferralSummary
+}
+
+export async function requestReferralLeaderboard(limit = 10) {
+  const { data, error } = await supabase.rpc('get_referral_leaderboard', { p_limit: limit })
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((item: { rank: number; account: string; total_referrals: number }) => ({ rank: item.rank, account: item.account, totalReferrals: item.total_referrals })) as ReferralLeaderboardItem[]
+}
+
+export async function requestReferralHistory(limit = 20) {
+  const { data, error } = await supabase.rpc('get_my_referral_history', { p_limit: limit })
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((item: { friend_account: string; joined_at: string; status: 'successful' | 'pending'; reward: number | null }) => ({ friendAccount: item.friend_account, joinedAt: item.joined_at, status: item.status, reward: item.reward })) as ReferralHistoryItem[]
 }
 
 type ImageUploadResponse = ImageReference | {

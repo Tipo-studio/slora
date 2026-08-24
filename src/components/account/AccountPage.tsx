@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import './account-page.css'
 import type { User } from '@supabase/supabase-js'
-import { Check, Copy, Gift, Sparkles, UserRound } from 'lucide-react'
-import { requestReferralSummary, type ReferralSummary } from '../../lib/sivitai'
+import { Check, Copy, Gift, QrCode } from 'lucide-react'
 import { SiteHeader } from '../SiteHeader'
+import { requestReferralHistory, requestReferralLeaderboard, requestReferralSummary, type ReferralHistoryItem, type ReferralLeaderboardItem, type ReferralSummary } from '../../lib/sivitai'
 
 type AccountPageProps = {
   user: User | null
@@ -19,57 +19,48 @@ type AccountPageProps = {
 
 function AccountPage({ user, onBack, onSignOut, onOpenJoinBeta, onOpenLibrary, onOpenFunction, onOpenPaywall, onOpenAccount, onAuthenticated }: AccountPageProps) {
   const [referral, setReferral] = useState<ReferralSummary | null>(null)
+  const [leaderboard, setLeaderboard] = useState<ReferralLeaderboardItem[]>([])
+  const [history, setHistory] = useState<ReferralHistoryItem[]>([])
   const [error, setError] = useState('')
+  const [showGuide, setShowGuide] = useState(true)
   const [copied, setCopied] = useState(false)
+
 
   useEffect(() => {
     if (!user || user.is_anonymous) return
     let isCurrent = true
-    void requestReferralSummary()
-      .then((summary) => { if (isCurrent) setReferral(summary) })
+    void Promise.all([requestReferralSummary(), requestReferralLeaderboard(), requestReferralHistory()])
+      .then(([summary, leaderboardItems, historyItems]) => {
+        if (!isCurrent) return
+        setReferral(summary)
+        setLeaderboard(leaderboardItems)
+        setHistory(historyItems)
+      })
       .catch((requestError: unknown) => { if (isCurrent) setError(requestError instanceof Error ? requestError.message : 'Unable to load referral details.') })
     return () => { isCurrent = false }
   }, [user])
 
+
   const referralLink = referral ? `${window.location.origin}/?ref=${encodeURIComponent(referral.referralCode)}` : ''
-  const copyReferralLink = async () => {
-    if (!referralLink) return
-    await navigator.clipboard.writeText(referralLink)
+  const copyText = async (text: string) => {
+    if (!text) return
+    await navigator.clipboard.writeText(text)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1800)
   }
+  const copyReferralLink = async () => copyText(referralLink)
 
-  return <div className="account-page min-h-screen bg-white text-black">
+  return <div className="account-page">
+    <div className="account-page-grid" aria-hidden="true" />
     <SiteHeader onOpenJoinBeta={onOpenJoinBeta} onOpenLibrary={onOpenLibrary} onOpenAccount={onOpenAccount} onOpenFunction={onOpenFunction} onOpenPaywall={onOpenPaywall} user={user} onSignOut={onSignOut} onAuthenticated={onAuthenticated} onLogoClick={onBack} />
-    <main className="account-page-content mx-auto max-w-5xl px-[var(--pad-x)] pb-16 pt-32">
-      <div className="account-page-eyebrow"><Sparkles size={14} /> MY ACCOUNT</div>
-      <h1 className="account-page-title">Your creative account</h1>
-      <p className="account-page-lead">Manage your profile and invite friends to earn bonus generations together.</p>
-
-      <section className="mt-12 grid gap-5 md:grid-cols-[1.1fr_.9fr]">
-        <article className="account-page-card">
-          <div className="account-page-card-icon"><UserRound size={22} /></div>
-          <p className="mt-6 text-xs uppercase tracking-[.18em] text-gray-500">Signed in as</p>
-          <h2 className="mt-2 break-all text-xl font-semibold">{user?.email ?? 'Account'}</h2>
-          <p className="mt-3 text-sm text-gray-600">Your account is ready for generations, credits and referrals.</p>
-        </article>
-        <article className="account-page-card account-page-referral-card">
-          <div className="account-page-card-icon"><Gift size={22} /></div>
-          <p className="mt-6 text-xs uppercase tracking-[.18em] text-gray-500">Referral rewards</p>
-          <h2 className="mt-2 text-xl font-semibold">Invite friends</h2>
-          <p className="mt-3 text-sm leading-6 text-gray-600">You and your friend receive 10 generations when they create an account.</p>
-          {error ? <p className="mt-5 text-sm text-red-600" role="alert">{error}</p> : <>
-            <div className="mt-5 flex items-center gap-2 rounded border border-gray-200 bg-gray-50 p-2">
-              <code className="min-w-0 flex-1 truncate px-2 text-sm">{referral?.referralCode ?? 'Loading referral code…'}</code>
-              <button type="button" className="account-page-copy" onClick={() => void copyReferralLink()} disabled={!referralLink} aria-label="Copy referral link">{copied ? <Check size={16} /> : <Copy size={16} />}</button>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded border border-gray-200 p-3"><strong className="block text-2xl">{referral?.successfulReferrals ?? 0}</strong><span className="text-xs text-gray-500">Successful referrals</span></div>
-              <div className="rounded border border-gray-200 p-3"><strong className="block text-2xl">{referral?.bonusGenerations ?? 0}</strong><span className="text-xs text-gray-500">Bonus generations</span></div>
-            </div>
-          </>}
-        </article>
+    <main className="account-page-content">
+      <section className="account-page-hero"><div><h1 className="account-page-title">Invite friends.<br />Get free<br />generations!</h1><p className="account-page-lead">Earn up to <strong>100 generations</strong> as a reward for every successful referral.</p></div><div className="account-page-hero-art" aria-hidden="true"><div className="account-page-art-glow" /><div className="account-page-art-card"><span><Gift size={56} /></span><b>LGPSM</b></div></div></section>
+      <section className="account-page-referral-panel">
+        {error && <p className="account-page-error" role="alert">{error}</p>}
+        <div className="account-page-referral-fields"><label>Referral code<div className="account-page-input"><input readOnly value={referral?.referralCode ?? 'Loading referral code…'} /><button type="button" onClick={() => void copyText(referral?.referralCode ?? '')} disabled={!referral} aria-label="Copy referral code"><Copy size={16} /></button></div></label><label className="account-page-link-field">Referral link<div className="account-page-input"><input readOnly value={referralLink || 'Loading referral link…'} /><button type="button" onClick={() => void copyReferralLink()} disabled={!referralLink} aria-label="Copy referral link">{copied ? <Check size={16} /> : <Copy size={16} />}</button></div></label><div className="account-page-invite-actions"><button type="button" className="account-page-invite" onClick={() => void copyReferralLink()}>Invite friends</button><button type="button" className="account-page-qr" aria-label="QR code"><QrCode size={20} /></button></div></div>
+        {showGuide && <div className="account-page-guide"><h3>How it works</h3><div className="account-page-steps"><div><span>↗</span><p>Share your referral code or link with friends.</p></div><div><span>+</span><p>Your friends sign up using your referral code.</p></div><div><span>◆</span><p>Receive bonus generations for every successful referral.</p></div></div><button type="button" className="account-page-hide-guide" onClick={() => setShowGuide(false)}>Hide guide　⌃</button></div>}
       </section>
+      <section className="account-page-tables"><div><h2>Referral leaderboard</h2><div className="account-page-table-wrap"><table><thead><tr><th>Rank</th><th>Account</th><th>Total referrals</th></tr></thead><tbody>{leaderboard.map((item) => <tr key={`${item.rank}-${item.account}`}><td className={item.rank === 1 ? 'is-top' : ''}>#{item.rank}</td><td>{item.account}</td><td>{item.totalReferrals}</td></tr>)}</tbody></table></div></div><div><h2>Referral history</h2><div className="account-page-table-wrap"><table><thead><tr><th>Friend account</th><th>Joined</th><th>Status</th><th>My reward</th></tr></thead><tbody>{history.map((item) => <tr key={`${item.friendAccount}-${item.joinedAt}`}><td>{item.friendAccount}</td><td>{new Date(item.joinedAt).toLocaleDateString('en-US')}</td><td className={item.status === 'successful' ? 'is-success' : ''}>{item.status === 'successful' ? 'Successful' : 'Pending'}</td><td>{item.reward === null ? '--' : `${item.reward} generations`}</td></tr>)}</tbody></table></div></div></section>
     </main>
   </div>
 }

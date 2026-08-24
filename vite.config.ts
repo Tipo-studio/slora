@@ -11,7 +11,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/sivitai-api': {
-        target: 'http://localhost:3001',
+        target: 'https://sivitai-api.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/sivitai-api/, ''),
       },
