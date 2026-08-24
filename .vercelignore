@@ -1,0 +1,7 @@
+docs/workspace-archive/
+node_modules/
+dist/
+.git/
+.env*
+*.fig
+*.zip

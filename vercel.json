@@ -3,6 +3,10 @@
     {
       "source": "/sivitai-api/:path*",
       "destination": "https://sivitai-api.onrender.com/:path*"
+    },
+    {
+      "source": "/((?!sivitai-api/).*)",
+      "destination": "/index.html"
     }
   ]
 }
