@@ -5,7 +5,7 @@ import { Check, Copy, Gift, QrCode } from 'lucide-react'
 import { SiteHeader } from '../SiteHeader'
 import { requestReferralHistory, requestReferralLeaderboard, requestReferralSummary, type ReferralHistoryItem, type ReferralLeaderboardItem, type ReferralSummary } from '../../lib/sivitai'
 
-type AccountPageProps = {
+export type AccountPageProps = {
   user: User | null
   onBack: () => void
   onSignOut: () => Promise<void>

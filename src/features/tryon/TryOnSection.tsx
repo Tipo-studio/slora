@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ChevronLeft, ChevronRight, Download, Maximize2, Pencil, Shirt, X } from 'lucide-react'
-import { createGeneration, getGeneration, getTool, isSafeRemoteUrl, uploadSourceImage, type Generation, type ImageReference, type ToolDefinition } from '../../lib/sivitai'
-import { getCurrentPackage, getDeviceId, getFreeGenerationsRemaining, getPurchasedGenerationsRemaining, markFreeGenerationUsed, resetFreeGenerationsForTesting, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
+import { createGeneration, getGeneration, getTool, isSafeRemoteUrl, requestBillingSummary, uploadSourceImage, type Generation, type ImageReference, type ToolDefinition } from '../../lib/sivitai'
+import { getCurrentPackage, getDeviceId, getFreeGenerationsRemaining, resetFreeGenerationsForTesting, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
 import { addLibraryImages } from '../../lib/imageLibrary'
 import { MAGIC_EDITOR_PROMPTS, getMagicEditorPrompt } from './magicEditorPrompts'
 import { clearPendingGuestGeneration, getPendingGuestGeneration, getSavedTryOnSession, savePendingGuestGeneration, saveTryOnSession, type GuestImage, type TryOnTool } from './tryonSession'
@@ -202,6 +202,19 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
   }), [])
 
   useEffect(() => {
+    if (!user || user.is_anonymous) return
+    let isCurrent = true
+    void requestBillingSummary()
+      .then(({ balance, package: packageName }) => {
+        if (!isCurrent) return
+        setFreeGenerationsRemaining(balance)
+        if (packageName === 'One time' || packageName === 'Creator' || packageName === 'Studio') setCurrentPackage(packageName)
+      })
+      .catch(() => undefined)
+    return () => { isCurrent = false }
+  }, [user])
+
+  useEffect(() => {
     if (!user || user.is_anonymous || new URLSearchParams(window.location.search).get('resume') !== 'guest-generation') return
     const pendingGuestGeneration = getPendingGuestGeneration()
     if (!pendingGuestGeneration) return
@@ -250,10 +263,8 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
           }
         }
 
-        const job = await createGeneration(nextTool.slug, inputs, getDeviceId(), false)
+        const job = await createGeneration(nextTool.slug, inputs, getDeviceId(), true)
         if (!isCurrent) return
-        markFreeGenerationUsed()
-        setFreeGenerationsRemaining(getFreeGenerationsRemaining())
         clearPendingGuestGeneration()
         window.history.replaceState({}, '', '/')
         setGeneration({ ...job, outputs: [], errorMessage: null })
@@ -267,21 +278,7 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
   }, [user])
 
   useEffect(() => {
-    if (!generationId || !generationId.startsWith('guest-preview-') || !isGenerating) return
-    const previewGenerationId = generationId
-    const timeoutId = window.setTimeout(() => {
-      setGeneration((current) => current?.generationId === previewGenerationId ? {
-        generationId: current.generationId,
-        status: 'completed',
-        outputs: Object.values(guestImages).slice(0, 1).map((image) => ({ id: `guest-preview-result-${crypto.randomUUID()}`, type: 'image', url: image?.dataUrl ?? null, downloadUrl: null })),
-        errorMessage: null,
-      } : current)
-    }, 4000)
-    return () => window.clearTimeout(timeoutId)
-  }, [generationId, guestImages, isGenerating])
-
-  useEffect(() => {
-    if (!generationId || !isGenerating || generationId.startsWith('guest-preview-')) return
+    if (!generationId || !isGenerating) return
     let isCurrent = true
     const poll = async () => {
       try {
@@ -383,6 +380,10 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
   }
 
   const generate = async () => {
+    if (!user || user.is_anonymous) {
+      setError('Please sign in to create an image.')
+      return
+    }
     if (!activeToolConfig.slug || !toolDefinition) { setError('This tool is not available yet.'); return }
     if (uploadingFieldName) { setError('Please wait for the new image to finish uploading.'); return }
     const inputs: Record<string, unknown> = {}
@@ -408,19 +409,22 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
         if (!guestImage) { setError('Please upload an image to preview your result.'); return }
 
         savePendingGuestGeneration({ activeTool, guestImages, prompt })
-        const previewGenerationId = `guest-preview-${crypto.randomUUID()}`
-        setSelectedResultIndex(0)
-        setGeneration({ generationId: previewGenerationId, status: 'processing', outputs: [], errorMessage: null })
+        setError('Please sign in to create an image. Your uploaded session is saved and can resume after sign-in.')
         return
       }
 
-      const purchasedGenerationsRemaining = getPurchasedGenerationsRemaining()
-      const isLimitedGeneration = freeGenerationsRemaining <= 0 && purchasedGenerationsRemaining <= 0
-      setIsLimitedGeneration(isLimitedGeneration)
+      const isLimitedGeneration = freeGenerationsRemaining <= 0
+      if (isLimitedGeneration) {
+        setIsLimitedGeneration(true)
+        setError('You have no credits remaining. Please choose a package to continue.')
+        return
+      }
+      setIsLimitedGeneration(false)
 
-      const job = await createGeneration(activeToolConfig.slug, inputs, getDeviceId(), purchasedGenerationsRemaining === 0)
-      markFreeGenerationUsed()
-      setFreeGenerationsRemaining(getFreeGenerationsRemaining())
+      const job = await createGeneration(activeToolConfig.slug, inputs, getDeviceId(), false)
+      const billing = await requestBillingSummary()
+      setFreeGenerationsRemaining(billing.balance)
+      if (billing.package === 'One time' || billing.package === 'Creator' || billing.package === 'Studio') setCurrentPackage(billing.package)
       setSelectedResultIndex(0)
       setGeneration({ ...job, outputs: [], errorMessage: null })
     } catch (requestError) {
@@ -503,7 +507,8 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
   const loadingPreviewUrl = personPreviewUrl ?? clothesPreviewUrl
   const toolUsesImages = toolDefinition?.inputSchema.fields.some((field) => field.type === 'image' && !field.hidden)
   const toolUsesPrompt = toolDefinition?.inputSchema.fields.some((field) => (field.type === 'text' || field.type === 'textarea') && !field.hidden)
-  const canWriteCustomMagicPrompt = activeTool !== 'magic-editor' || currentPackage === 'Studio'
+  const isPaidUser = Boolean(user && !user.is_anonymous)
+  const canWriteCustomMagicPrompt = activeTool !== 'magic-editor' || (isPaidUser && currentPackage === 'Studio')
 
   return <section ref={sectionRef} id="tryon" className="tryon-screen relative z-10 min-h-screen" aria-label="Try-on tools">
     <div className="tryon-tool-intro"><nav className="tryon-tool-menu" aria-label="Creative tools">{TRYON_TOOLS.map(({ id, label }) => <button key={id} type="button" className={activeTool === id ? 'is-active' : ''} aria-current={activeTool === id ? 'page' : undefined} onClick={() => selectTool(id)}><Corner position="tl" /><Corner position="tr" /><Corner position="bl" /><Corner position="br" /><span>{label}</span></button>)}</nav><p>{activeToolConfig.description}</p></div>

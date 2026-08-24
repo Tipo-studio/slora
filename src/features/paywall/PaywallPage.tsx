@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { ArrowLeft, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, X } from 'lucide-react'
 import { ImageRevealBackground } from '../../components/home/ImageRevealBackground'
-import { addPurchasedGenerations, getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges, type PackageName } from '../../lib/freeGeneration'
+import { requestBillingSummary, createBillingCheckout, type BillingCheckoutResponse } from '../../lib/sivitai'
 import { CoreInteractiveGrid } from '../core/CoreInteractiveGrid'
 
 type PlanSlug = 'one-time' | 'creator' | 'studio'
+type PackageName = 'One time' | 'Creator' | 'Studio'
 
 type Plan = {
   name: PackageName
   slug: PlanSlug
   price: string
   generations: number
+  priceId: string
   credits: string
   included: string[]
   unavailable: string[]
@@ -25,6 +27,7 @@ const plans: Plan[] = [
     slug: 'one-time',
     price: '$4.99',
     generations: 5,
+    priceId: 'one-time-5',
     credits: '5 Generation ~ $0.99 each',
     included: ['Everything Included', 'Results per Generation up to 2', 'HD Unlock'],
     unavailable: ['Unlimited History', 'Batch Generation', 'Bulk try-on', 'Queue priority'],
@@ -34,6 +37,7 @@ const plans: Plan[] = [
     slug: 'creator',
     price: '$9.99',
     generations: 300,
+    priceId: 'creator-monthly',
     credits: '300 Generations ~ $0.03 each',
     included: ['Everything Included', 'Results per Generation 2–4', 'HD Unlock', '1 month History'],
     unavailable: ['Batch Generation', 'Bulk try-on', 'Queue priority'],
@@ -43,6 +47,7 @@ const plans: Plan[] = [
     slug: 'studio',
     price: '$19.99',
     generations: 700,
+    priceId: 'studio-monthly',
     credits: '700 Generations ~ $0.03 each',
     included: ['Everything Included', 'Results per Generation up to 8', 'HD Unlock', 'Unlimited History', 'Batch Generation', 'Bulk try-on', 'Queue priority'],
     unavailable: [],
@@ -84,13 +89,13 @@ function PlanCard({ plan, billingPeriod, isSelected, isCurrentPackage, onSelect 
   </article>
 }
 
-function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestLogin }: { onBack: () => void; onPurchaseComplete: () => void; initialPlan?: 'one-time' | 'creator' | 'studio'; user: User | null; onRequestLogin: () => void }) {
+function PaywallPage({ onBack, initialPlan, user, onRequestLogin }: { onBack: () => void; initialPlan?: 'one-time' | 'creator' | 'studio'; user: User | null; onRequestLogin: () => void }) {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
   const [activePlan, setActivePlan] = useState<PlanSlug>('creator')
-  const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
+  const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const [purchaseMessage, setPurchaseMessage] = useState('')
-  const [purchaseUpdate, setPurchaseUpdate] = useState<{ plan: PackageName; added: number; remaining: number } | null>(null)
+  const [checkout, setCheckout] = useState<BillingCheckoutResponse | null>(null)
 
   useEffect(() => {
     if (!initialPlan) return
@@ -100,9 +105,16 @@ function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestL
     window.requestAnimationFrame(() => document.getElementById(`paywall-plan-${initialPlan}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }, [initialPlan])
 
-  useEffect(() => subscribeToFreeGenerationChanges(() => setCurrentPackage(getCurrentPackage())), [])
+  useEffect(() => {
+    if (!user || user.is_anonymous) return
+    let isCurrent = true
+    void requestBillingSummary()
+      .then(({ package: packageName }) => { if (isCurrent) setCurrentPackage(packageName) })
+      .catch(() => undefined)
+    return () => { isCurrent = false }
+  }, [user])
 
-  const confirmPurchase = () => {
+  const confirmPurchase = async () => {
     if (!selectedPlan) return
     if (!user || user.is_anonymous) {
       setSelectedPlan(null)
@@ -110,11 +122,13 @@ function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestL
       return
     }
 
-    const packageName = selectedPlan.name as PackageName
-    addPurchasedGenerations(selectedPlan.generations, packageName)
-    setPurchaseMessage(`${selectedPlan.generations.toLocaleString()} generations added to your account.`)
-    setPurchaseUpdate({ plan: packageName, added: selectedPlan.generations, remaining: getFreeGenerationsRemaining() })
-    setSelectedPlan(null)
+    try {
+      const response = await createBillingCheckout(selectedPlan.priceId)
+      setCheckout(response)
+      window.location.assign(response.approvalUrl)
+    } catch (requestError) {
+      setPurchaseMessage(requestError instanceof Error ? requestError.message : 'Unable to start checkout.')
+    }
   }
 
   return <main className="paywall-page">
@@ -139,27 +153,13 @@ function PaywallPage({ onBack, onPurchaseComplete, initialPlan, user, onRequestL
     {selectedPlan && <div className="paywall-confirm-overlay" role="presentation">
       <section className="paywall-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="paywall-confirm-title">
         <button type="button" className="paywall-confirm-close" onClick={() => setSelectedPlan(null)} aria-label="Close confirmation"><X size={20} strokeWidth={1.5} /></button>
-        <p className="paywall-confirm-eyebrow">{user && !user.is_anonymous ? 'Test purchase' : 'Sign in required'}</p>
+        <p className="paywall-confirm-eyebrow">{user && !user.is_anonymous ? 'Secure checkout' : 'Sign in required'}</p>
         <h2 id="paywall-confirm-title">{user && !user.is_anonymous ? `Add ${selectedPlan.generations.toLocaleString()} generations?` : `Sign in to purchase ${selectedPlan.name}`}</h2>
-        <p>{user && !user.is_anonymous ? <>Payment is temporarily skipped for testing. Confirming will add the generations from the <strong>{selectedPlan.name}</strong> plan to this account.</> : 'Purchases and package benefits are available only to signed-in accounts.'}</p>
-        <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)}>Cancel</button><button type="button" className="button-primary" onClick={confirmPurchase}>{user && !user.is_anonymous ? 'Confirm purchase' : 'Sign in'}</button></div>
+        <p>{user && !user.is_anonymous ? <>Continue to secure checkout for the <strong>{selectedPlan.name}</strong> plan.</> : 'Purchases and package benefits are available only to signed-in accounts.'}</p>
+        <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)}>Cancel</button><button type="button" className="button-primary" onClick={() => void confirmPurchase()}>{user && !user.is_anonymous ? 'Continue to checkout' : 'Sign in'}</button></div>
       </section>
     </div>}
-    {purchaseUpdate && <div className="home2-generation-update" role="dialog" aria-modal="true" aria-labelledby="paywall-generation-update-title">
-      <button type="button" className="home2-generation-update-backdrop" onClick={() => setPurchaseUpdate(null)} aria-label="Close purchase update" />
-      <div className="home2-generation-update-panel">
-        <button type="button" className="home2-generation-update-close" onClick={() => setPurchaseUpdate(null)} aria-label="Close purchase update">×</button>
-        <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
-        <p>Plan activated</p>
-        <h2 id="paywall-generation-update-title">Generation balance updated</h2>
-        <p>{purchaseUpdate.plan} package</p>
-        <div className="home2-generation-update-summary">
-          <span><small>Added</small><strong>+{purchaseUpdate.added}</strong></span>
-          <span><small>Available now</small><strong>{purchaseUpdate.remaining}</strong></span>
-        </div>
-        <button type="button" className="button-primary" onClick={() => { setPurchaseUpdate(null); onPurchaseComplete() }}>START CREATING</button>
-      </div>
-    </div>}
+    {checkout && <p className="paywall-purchase-message" role="status">Redirecting to secure checkout…</p>}
   </main>
 }
 

@@ -5,6 +5,7 @@ import { Corner } from './ui/Corner'
 import { LoginOverlay } from '../features/auth/LoginOverlay'
 import { PromoCodeRedeemer } from './home/PromoCodeRedeemer'
 import { getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges } from '../lib/freeGeneration'
+import { requestBillingSummary } from '../lib/sivitai'
 
 type SiteHeaderProps = {
   onOpenJoinBeta: () => void
@@ -30,6 +31,19 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
   const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
   const accountMenuRef = useRef<HTMLDivElement>(null)
   const isAuthenticatedUser = Boolean(user && !user.is_anonymous)
+
+  useEffect(() => {
+    if (!isAuthenticatedUser) return
+    let isCurrent = true
+    void requestBillingSummary()
+      .then(({ balance, package: packageName }) => {
+        if (!isCurrent) return
+        setFreeGenerationsRemaining(balance)
+        if (packageName === 'One time' || packageName === 'Creator' || packageName === 'Studio') setCurrentPackage(packageName)
+      })
+      .catch(() => undefined)
+    return () => { isCurrent = false }
+  }, [isAuthenticatedUser])
 
   useEffect(() => {
     const syncFreeGenerations = () => {

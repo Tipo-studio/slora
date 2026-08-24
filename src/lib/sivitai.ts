@@ -205,6 +205,59 @@ export function redeemPromoCode(code: string) {
   }, 'required')
 }
 
+export type BillingSummary = {
+  balance: number
+  package: string | null
+}
+
+export type BillingCheckoutResponse = {
+  orderId: string
+  provider: 'paypal'
+  providerCheckoutId: string
+  approvalUrl: string
+}
+
+export type BillingCaptureResponse = {
+  orderId: string
+  status: 'paid'
+  creditBalance: number
+}
+
+export function createBillingCheckout(priceId: string) {
+  return request<BillingCheckoutResponse>('/api/billing/paypal/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ priceId }),
+  }, 'required')
+}
+
+export function captureBillingOrder(orderId: string) {
+  return request<BillingCaptureResponse>(`/api/billing/paypal/orders/${encodeURIComponent(orderId)}/capture`, {
+    method: 'POST',
+  }, 'required')
+}
+
+type BillingSummaryApiResponse = {
+  creditBalance?: number | string | null
+  balance?: number | string | null
+  creditsRemaining?: number | string | null
+  credits?: number | string | null
+  package?: string | null
+  currentPackage?: string | null
+  activePackage?: { productName?: string | null } | null
+}
+
+function toNonNegativeNumber(value: number | string | null | undefined) {
+  const parsed = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : null
+}
+
+export async function requestBillingSummary() {
+  const response = await request<BillingSummaryApiResponse>('/api/billing/me', {}, 'required')
+  const balance = toNonNegativeNumber(response.creditBalance ?? response.balance ?? response.creditsRemaining ?? response.credits)
+  if (balance === null) throw new Error('Billing API returned an invalid credit balance.')
+  return { balance, package: response.package ?? response.currentPackage ?? response.activePackage?.productName ?? null } satisfies BillingSummary
+}
+
 export function createGeneration(slug: string, inputs: Record<string, unknown>, deviceId: string, freeGeneration: boolean) {
   return request<Pick<Generation, 'generationId' | 'status'>>(`/api/tools/${encodeURIComponent(slug)}/jobs`, {
     method: 'POST',

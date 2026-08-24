@@ -84,7 +84,7 @@ function App() {
     const initialPlan = searchParams.get('plan')
     const returnToResult = searchParams.get('return') === 'tryon-result'
     return <>
-      <PaywallPage onBack={() => navigate(returnToResult ? '/?return=tryon-result' : '/')} onPurchaseComplete={() => navigate(returnToResult ? '/?return=tryon-result' : '/')} initialPlan={initialPlan === 'one-time' || initialPlan === 'creator' || initialPlan === 'studio' ? initialPlan : undefined} user={user} onRequestLogin={() => setIsPaywallLoginOpen(true)} />
+      <PaywallPage onBack={() => navigate(returnToResult ? '/?return=tryon-result' : '/')} initialPlan={initialPlan === 'one-time' || initialPlan === 'creator' || initialPlan === 'studio' ? initialPlan : undefined} user={user} onRequestLogin={() => setIsPaywallLoginOpen(true)} />
       {isPaywallLoginOpen && <LoginOverlay onClose={() => setIsPaywallLoginOpen(false)} onAuthenticated={resetForUserTransition} />}
     </>
   }
