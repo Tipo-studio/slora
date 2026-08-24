@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from 'r
 import type { User } from '@supabase/supabase-js'
 import { ChevronLeft, ChevronRight, Download, Maximize2, Pencil, Shirt, X } from 'lucide-react'
 import { createGeneration, getGeneration, getTool, isSafeRemoteUrl, requestBillingSummary, uploadSourceImage, type Generation, type ImageReference, type ToolDefinition } from '../../lib/sivitai'
-import { getCurrentPackage, getDeviceId, getFreeGenerationsRemaining, resetFreeGenerationsForTesting, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
+import { getDeviceId } from '../../lib/freeGeneration'
 import { addLibraryImages } from '../../lib/imageLibrary'
 import { MAGIC_EDITOR_PROMPTS, getMagicEditorPrompt } from './magicEditorPrompts'
 import { clearPendingGuestGeneration, getPendingGuestGeneration, getSavedTryOnSession, savePendingGuestGeneration, saveTryOnSession, type GuestImage, type TryOnTool } from './tryonSession'
@@ -99,8 +99,8 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
   const [uploadingFieldName, setUploadingFieldName] = useState<string | null>(null)
   const [prompt, setPrompt] = useState(() => savedSession?.prompt ?? '')
   const [generation, setGeneration] = useState<Generation | null>(() => savedSession?.generation ?? null)
-  const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(() => getFreeGenerationsRemaining())
-  const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
+  const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
+  const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [isFullPreviewOpen, setIsFullPreviewOpen] = useState(false)
   const [selectedResultIndex, setSelectedResultIndex] = useState(0)
@@ -192,14 +192,6 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
     return () => { isCurrent = false }
   }, [initialImageUrl, toolDefinition, user])
 
-  useEffect(() => {
-    if (getFreeGenerationsRemaining() > 0) setIsLimitedGeneration(false)
-  }, [])
-
-  useEffect(() => subscribeToFreeGenerationChanges(() => {
-    setFreeGenerationsRemaining(getFreeGenerationsRemaining())
-    setCurrentPackage(getCurrentPackage())
-  }), [])
 
   useEffect(() => {
     if (!user || user.is_anonymous) return
@@ -219,19 +211,7 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
     const pendingGuestGeneration = getPendingGuestGeneration()
     if (!pendingGuestGeneration) return
 
-    if (getFreeGenerationsRemaining() <= 0) {
-      const previewImage = Object.values(pendingGuestGeneration.guestImages).find(Boolean)
-      clearPendingGuestGeneration()
-      window.history.replaceState({}, '', '/?upgrade=guest-generation')
-      setGeneration({
-        generationId: `guest-upgrade-${crypto.randomUUID()}`,
-        status: 'completed',
-        outputs: previewImage ? [{ id: `guest-upgrade-preview-${crypto.randomUUID()}`, type: 'image', url: previewImage.dataUrl, downloadUrl: null }] : [],
-        errorMessage: null,
-      })
-      setIsLimitedGeneration(true)
-      return
-    }
+    // Credit authority comes from the billing API; resume is attempted only after it is loaded.
 
     let isCurrent = true
     const resumeGeneration = async () => {
@@ -448,14 +428,6 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
     setActiveTool(tool)
   }
 
-  const resetGenerationForTesting = () => {
-    resetFreeGenerationsForTesting()
-    setFreeGenerationsRemaining(getFreeGenerationsRemaining())
-    setIsLimitedGeneration(false)
-    setGeneration(null)
-    setError('Generation reset to 1 for local testing.')
-  }
-
   const startNewSessionWithResult = async (tool: TryOnTool) => {
     if (!resultOutput?.url) return
     const nextTool = TRYON_TOOLS.find((item) => item.id === tool)
@@ -518,7 +490,6 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
       {toolUsesPrompt && <MagicPromptCard prompt={prompt} onPromptChange={setPrompt} canWriteCustomPrompt={canWriteCustomMagicPrompt} showSuggestions={activeTool === 'magic-editor'} />}
       <button type="button" className="tryon-cta button-primary" onClick={() => void generate()} disabled={isGenerating || uploadingFieldName !== null}><img src="/images/tryon/try-now-icon.svg" alt="" aria-hidden="true" />{isGenerating ? 'GENERATING…' : 'TRY NOW'}</button>
       <p className="tryon-free-count" aria-live="polite"><strong>{freeGenerationsRemaining}</strong> free generation{freeGenerationsRemaining === 1 ? '' : 's'} remaining</p>
-      {import.meta.env.DEV && <button type="button" className="tryon-test-reset" onClick={resetGenerationForTesting}>RESET GENERATION FOR TESTING</button>}
       {error && <p className="tryon-status tryon-status-error" role="alert">{error}</p>}
       {generation?.status === 'failed' && <div className="tryon-status tryon-status-error" role="alert"><p>{generation.errorMessage ?? 'Generation failed. Please try again.'}</p><button type="button" className="tryon-retry-button" onClick={retryGeneration} disabled={uploadingFieldName !== null}>TRY AGAIN</button></div>}
     </div></div>

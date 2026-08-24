@@ -6,7 +6,7 @@ import { ImageRevealBackground } from './ImageRevealBackground'
 import { CoreInteractiveGrid } from '../../features/core/CoreInteractiveGrid'
 import { LoginOverlay } from '../../features/auth/LoginOverlay'
 import { PromoCodeRedeemer } from './PromoCodeRedeemer'
-import { getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges } from '../../lib/freeGeneration'
+import { requestBillingSummary } from '../../lib/sivitai'
 
 const BG_IMAGE_1 = '/images/lgpsm-background-base.png'
 const CORE_VIDEO_SOURCES = [
@@ -32,8 +32,8 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
   const [isCoreFunctionVisible, setIsCoreFunctionVisible] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
-  const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(() => getFreeGenerationsRemaining())
-  const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
+  const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
+  const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const [activeCoreTab, setActiveCoreTab] = useState(0)
   const [promoGenerationUpdate, setPromoGenerationUpdate] = useState<{ granted: number; remaining: number } | null>(null)
   const accountMenuRef = useRef<HTMLDivElement>(null)
@@ -84,12 +84,17 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
   }, [isLoginOpen])
 
   useEffect(() => {
-    const syncFreeGenerations = () => {
-      setFreeGenerationsRemaining(getFreeGenerationsRemaining())
-      setCurrentPackage(getCurrentPackage())
-    }
-    return subscribeToFreeGenerationChanges(syncFreeGenerations)
-  }, [])
+    if (!isAuthenticatedUser) return
+    let isCurrent = true
+    void requestBillingSummary()
+      .then(({ balance, package: packageName }) => {
+        if (!isCurrent) return
+        setFreeGenerationsRemaining(balance)
+        setCurrentPackage(packageName as typeof currentPackage)
+      })
+      .catch(() => undefined)
+    return () => { isCurrent = false }
+  }, [isAuthenticatedUser])
 
   useEffect(() => {
     if (!isAccountMenuOpen) return

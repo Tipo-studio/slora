@@ -1,6 +1,9 @@
 -- Account referral API: secure RPCs consumed by the Account page.
 -- Requires public.users and public.credit_grants/credit_transactions from the billing migrations.
 
+-- This migration is intended for the Slora/Sivitai production Supabase project.
+-- Apply it only after the billing schema and public.grant_credits(uuid, bigint, text, text, uuid, jsonb) exist.
+
 alter table public.users
   add column if not exists referral_code text,
   add column if not exists referred_by_user_id uuid references public.users(id) on delete set null;

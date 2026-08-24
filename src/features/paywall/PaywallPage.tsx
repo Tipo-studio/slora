@@ -14,6 +14,8 @@ type Plan = {
   price: string
   generations: number
   priceId: string
+  annualPriceId?: string
+  annualPrice?: string
   credits: string
   included: string[]
   unavailable: string[]
@@ -26,9 +28,9 @@ const plans: Plan[] = [
     name: 'One time',
     slug: 'one-time',
     price: '$4.99',
-    generations: 5,
+    generations: 10,
     priceId: 'one-time-5',
-    credits: '5 Generation ~ $0.99 each',
+    credits: '10 Credits ~ $0.50 each',
     included: ['Everything Included', 'Results per Generation up to 2', 'HD Unlock'],
     unavailable: ['Unlimited History', 'Batch Generation', 'Bulk try-on', 'Queue priority'],
   },
@@ -38,6 +40,8 @@ const plans: Plan[] = [
     price: '$9.99',
     generations: 300,
     priceId: 'creator-monthly',
+    annualPriceId: 'creator-annual',
+    annualPrice: '$6.67',
     credits: '300 Generations ~ $0.03 each',
     included: ['Everything Included', 'Results per Generation 2–4', 'HD Unlock', '1 month History'],
     unavailable: ['Batch Generation', 'Bulk try-on', 'Queue priority'],
@@ -48,6 +52,8 @@ const plans: Plan[] = [
     price: '$19.99',
     generations: 700,
     priceId: 'studio-monthly',
+    annualPriceId: 'studio-annual',
+    annualPrice: '$13.99',
     credits: '700 Generations ~ $0.03 each',
     included: ['Everything Included', 'Results per Generation up to 8', 'HD Unlock', 'Unlimited History', 'Batch Generation', 'Bulk try-on', 'Queue priority'],
     unavailable: [],
@@ -67,7 +73,7 @@ function PlanFeature({ children, unavailable = false, studio = false }: { childr
 function PlanCard({ plan, billingPeriod, isSelected, isCurrentPackage, onSelect }: { plan: Plan; billingPeriod: 'monthly' | 'annual'; isSelected: boolean; isCurrentPackage: boolean; onSelect: (plan: Plan) => void }) {
   const isOneTimePlan = plan.name === 'One time'
   const monthlyPrice = Number.parseFloat(plan.price.slice(1))
-  const price = isOneTimePlan || billingPeriod === 'monthly' ? monthlyPrice : monthlyPrice * .7
+  const price = isOneTimePlan || billingPeriod === 'monthly' ? monthlyPrice : Number.parseFloat(plan.annualPrice?.slice(1) ?? String(monthlyPrice * .7))
   const formattedPrice = `$${price.toFixed(2)}`
   const billingLabel = isOneTimePlan ? 'one time' : billingPeriod === 'annual' ? 'per month, billed annually' : 'per month'
   const planSlug = plan.slug
@@ -96,6 +102,7 @@ function PaywallPage({ onBack, initialPlan, user, onRequestLogin }: { onBack: ()
   const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const [purchaseMessage, setPurchaseMessage] = useState('')
   const [checkout, setCheckout] = useState<BillingCheckoutResponse | null>(null)
+  const [isCheckoutStarting, setIsCheckoutStarting] = useState(false)
 
   useEffect(() => {
     if (!initialPlan) return
@@ -122,12 +129,17 @@ function PaywallPage({ onBack, initialPlan, user, onRequestLogin }: { onBack: ()
       return
     }
 
+    setIsCheckoutStarting(true)
+    setPurchaseMessage('')
     try {
-      const response = await createBillingCheckout(selectedPlan.priceId)
+      const priceId = billingPeriod === 'annual' && selectedPlan.annualPriceId ? selectedPlan.annualPriceId : selectedPlan.priceId
+      const response = await createBillingCheckout(priceId)
       setCheckout(response)
       window.location.assign(response.approvalUrl)
     } catch (requestError) {
       setPurchaseMessage(requestError instanceof Error ? requestError.message : 'Unable to start checkout.')
+    } finally {
+      setIsCheckoutStarting(false)
     }
   }
 
@@ -156,7 +168,7 @@ function PaywallPage({ onBack, initialPlan, user, onRequestLogin }: { onBack: ()
         <p className="paywall-confirm-eyebrow">{user && !user.is_anonymous ? 'Secure checkout' : 'Sign in required'}</p>
         <h2 id="paywall-confirm-title">{user && !user.is_anonymous ? `Add ${selectedPlan.generations.toLocaleString()} generations?` : `Sign in to purchase ${selectedPlan.name}`}</h2>
         <p>{user && !user.is_anonymous ? <>Continue to secure checkout for the <strong>{selectedPlan.name}</strong> plan.</> : 'Purchases and package benefits are available only to signed-in accounts.'}</p>
-        <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)}>Cancel</button><button type="button" className="button-primary" onClick={() => void confirmPurchase()}>{user && !user.is_anonymous ? 'Continue to checkout' : 'Sign in'}</button></div>
+        <div className="paywall-confirm-actions"><button type="button" className="button-secondary" onClick={() => setSelectedPlan(null)} disabled={isCheckoutStarting}>Cancel</button><button type="button" className="button-primary" onClick={() => void confirmPurchase()} disabled={isCheckoutStarting}>{user && !user.is_anonymous ? isCheckoutStarting ? 'Opening checkout…' : 'Continue to checkout' : 'Sign in'}</button></div>
       </section>
     </div>}
     {checkout && <p className="paywall-purchase-message" role="status">Redirecting to secure checkout…</p>}

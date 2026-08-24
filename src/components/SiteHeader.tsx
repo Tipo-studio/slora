@@ -4,7 +4,6 @@ import { CircleUserRound, Gift, Images, LogOut, Sparkles, UserRound } from 'luci
 import { Corner } from './ui/Corner'
 import { LoginOverlay } from '../features/auth/LoginOverlay'
 import { PromoCodeRedeemer } from './home/PromoCodeRedeemer'
-import { getCurrentPackage, getFreeGenerationsRemaining, subscribeToFreeGenerationChanges } from '../lib/freeGeneration'
 import { requestBillingSummary } from '../lib/sivitai'
 
 type SiteHeaderProps = {
@@ -27,8 +26,8 @@ function getAvatarUrl(user: User) {
 function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction, onOpenPaywall, user, onSignOut, onAuthenticated, onLogoClick }: SiteHeaderProps) {
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
-  const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(() => getFreeGenerationsRemaining())
-  const [currentPackage, setCurrentPackage] = useState(() => getCurrentPackage())
+  const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
+  const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const accountMenuRef = useRef<HTMLDivElement>(null)
   const isAuthenticatedUser = Boolean(user && !user.is_anonymous)
 
@@ -45,13 +44,6 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
     return () => { isCurrent = false }
   }, [isAuthenticatedUser])
 
-  useEffect(() => {
-    const syncFreeGenerations = () => {
-      setFreeGenerationsRemaining(getFreeGenerationsRemaining())
-      setCurrentPackage(getCurrentPackage())
-    }
-    return subscribeToFreeGenerationChanges(syncFreeGenerations)
-  }, [])
 
   useEffect(() => {
     if (!isLoginOpen) return
