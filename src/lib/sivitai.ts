@@ -1,7 +1,23 @@
 import { supabase } from './supabase'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/sivitai-api'
 const REQUEST_TIMEOUT_MS = 30_000
+
+function resolveApiBaseUrl() {
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim() || import.meta.env.NEXT_PUBLIC_API_URL?.trim()
+  if (!configuredUrl) return '/sivitai-api'
+
+  try {
+    const parsed = new URL(configuredUrl, window.location.origin)
+    const isLocalUrl = import.meta.env.DEV && ['http:', 'https:'].includes(parsed.protocol)
+    const isProductionUrl = parsed.protocol === 'https:'
+    if (!isLocalUrl && !isProductionUrl) throw new Error('Unsupported API protocol.')
+    return parsed.origin === window.location.origin ? parsed.pathname.replace(/\/$/, '') || '/' : parsed.toString().replace(/\/$/, '')
+  } catch {
+    return '/sivitai-api'
+  }
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 
 type ToolField = {
   name: string
