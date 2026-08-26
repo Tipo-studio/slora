@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
-import { ArrowLeft, Download, ImageIcon, Pencil, RefreshCw, Shirt, Trash2, X } from 'lucide-react'
+import { Download, ImageIcon, Pencil, RefreshCw, Shirt, Trash2, X } from 'lucide-react'
 import { getMyLibrary, isSafeRemoteUrl, type LibraryImage } from '../../lib/sivitai'
 import { getHiddenLibraryImageIds, hideLibraryImage } from '../../lib/imageLibrary'
+import { SiteHeader, type SiteHeaderProps } from '../../components/SiteHeader'
 
-type LibraryPageProps = {
-  user: User | null
+type LibraryPageProps = SiteHeaderProps & {
   onBack: () => void
   onOpenTool: (tool: 'try-on' | 'magic-editor', imageUrl: string) => void
 }
@@ -15,7 +14,7 @@ function formatLibraryDate(value: string) {
   return Number.isNaN(date.getTime()) ? 'Date unavailable' : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date)
 }
 
-function LibraryPage({ user, onBack, onOpenTool }: LibraryPageProps) {
+function LibraryPage({ user, onBack, onOpenTool, ...headerProps }: LibraryPageProps) {
   const [images, setImages] = useState<LibraryImage[]>([])
   const [previewImage, setPreviewImage] = useState<LibraryImage | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -90,10 +89,7 @@ function LibraryPage({ user, onBack, onOpenTool }: LibraryPageProps) {
 
 
   return <main className="library-page">
-    <header className="library-header">
-      <button type="button" className="paywall-home" onClick={onBack} aria-label="Back to home"><img src="/images/full-logo.svg" alt="LGPSM" /></button>
-      <button type="button" className="paywall-back" onClick={onBack}><ArrowLeft size={18} strokeWidth={1.5} />Back to home</button>
-    </header>
+    <SiteHeader {...headerProps} user={user} onLogoClick={onBack} />
     <section className="library-intro">
       <p>My library</p>
       <h1>Your creations</h1>

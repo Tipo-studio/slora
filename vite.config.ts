@@ -7,11 +7,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   server: {
-    port: 5173,
+    port: 5175,
     host: true,
     proxy: {
       '/sivitai-api': {
-        target: 'https://sivitai-api.onrender.com',
+        target: process.env.VITE_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://sivitai-api.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/sivitai-api/, ''),
       },

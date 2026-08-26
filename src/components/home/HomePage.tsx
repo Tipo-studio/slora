@@ -6,7 +6,9 @@ import { ImageRevealBackground } from './ImageRevealBackground'
 import { CoreInteractiveGrid } from '../../features/core/CoreInteractiveGrid'
 import { LoginOverlay } from '../../features/auth/LoginOverlay'
 import { PromoCodeRedeemer } from './PromoCodeRedeemer'
+import { Popup } from '../ui/Popup'
 import { requestBillingSummary } from '../../lib/sivitai'
+import { getAvatarUrl } from '../../lib/avatar'
 
 const BG_IMAGE_1 = '/images/lgpsm-background-base.png'
 const CORE_VIDEO_SOURCES = [
@@ -16,10 +18,6 @@ const CORE_VIDEO_SOURCES = [
 ] as const
 const TRY_YOUR_IDEA_IMAGE = '/images/try-your-idea-default.png'
 
-function getAvatarUrl(user: User) {
-  if (user.user_metadata.avatar_url) return String(user.user_metadata.avatar_url)
-  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=e2e8f0,cbd5e1,fef3c7,fee2e2,dcfce7`
-}
 
 function scrollToSection(section: HTMLElement | null) {
   if (!section) return
@@ -120,7 +118,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
       </a>
       <nav aria-label="Main navigation" className="home2-header-nav flex items-center font-medium uppercase tracking-[.2em]" style={{ gap: 'var(--gap-nav)', fontSize: 'var(--nav)' }}>
-        <button type="button" onClick={openJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Corner position="tl" /><Corner position="tr" /><Corner position="bl" /><Corner position="br" /><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN BETA NOW</span></button>
+        <button type="button" onClick={openJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN BETA NOW</span></button>
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
             <button type="button" className="home2-avatar-button" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}>
@@ -132,7 +130,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
                 <div className="home2-account-details"><span title={user.email}>{user.email}</span><div><small>{currentPackage ? `${currentPackage} package` : 'Free plan'}</small><button type="button" onClick={() => onOpenPaywall('studio')}>Upgrade</button></div></div>
               </div>
               <button type="button" className="home2-account-item" role="menuitem" onClick={scrollToTryOn}><span><Sparkles size={16} strokeWidth={1.5} />Generation</span><strong><Sparkles size={10} strokeWidth={1.5} />{freeGenerationsRemaining}</strong></button>
-              <PromoCodeRedeemer onRedeemed={({ granted, remaining }) => { setFreeGenerationsRemaining(remaining); setPromoGenerationUpdate({ granted, remaining }) }} />
+              <PromoCodeRedeemer onRedeemed={({ remaining }) => { setFreeGenerationsRemaining(remaining) }} />
               <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenLibrary}><span><Images size={16} strokeWidth={1.5} />My library</span></button>
               <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenAccount}><span><CircleUserRound size={16} strokeWidth={1.5} />My account</span></button>
               <div className="home2-account-divider" />
@@ -198,20 +196,16 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
     <section className="relative z-10 mx-[var(--pad-x)] mb-[var(--pad-y)] aspect-[4/5] border border-gray-200 bg-cover bg-center sm:aspect-[16/9] lg:hidden" style={{ backgroundImage: `url("${BG_IMAGE_1}")` }} aria-label="LGPSM collection preview" />
 
     {isLoginOpen && <LoginOverlay onClose={() => setIsLoginOpen(false)} onAuthenticated={(authenticatedUser) => { onAuthenticated(authenticatedUser); setIsLoginOpen(false) }} />}
-    {promoGenerationUpdate !== null && <div className="home2-generation-update" role="dialog" aria-modal="true" aria-labelledby="home2-generation-update-title">
-      <button type="button" className="home2-generation-update-backdrop" onClick={() => setPromoGenerationUpdate(null)} aria-label="Close generation update" />
-      <div className="home2-generation-update-panel">
-        <button type="button" className="home2-generation-update-close" onClick={() => setPromoGenerationUpdate(null)} aria-label="Close generation update">×</button>
-        <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
-        <p>Promo code applied</p>
-        <h2 id="home2-generation-update-title">Generation balance updated</h2>
-        <div className="home2-generation-update-summary">
-          <span><small>Added</small><strong>+{promoGenerationUpdate.granted}</strong></span>
-          <span><small>Available now</small><strong><Sparkles size={18} strokeWidth={1.5} />{promoGenerationUpdate.remaining}</strong></span>
+    <Popup open={promoGenerationUpdate !== null} title="Redeem successful" titleId="home2-generation-update-title" onClose={() => setPromoGenerationUpdate(null)} className="home2-generation-popup">
+      {promoGenerationUpdate && <>
+        <div className="home2-generation-update-art"><img src="/images/reward-code-banner.png" alt="" /><img className="home2-generation-update-logo" src="/images/full-logo.svg" alt="" /></div>
+        <div className="home2-generation-update-copy">
+          <h2>Redeem<br />successful</h2>
+          <p>You’ve been personally selected to take {promoGenerationUpdate.granted} generation time</p>
+          <button type="button" className="button-primary" onClick={() => { setPromoGenerationUpdate(null); scrollToTryOn() }}>CONTINUE</button>
         </div>
-        <button type="button" className="button-primary" onClick={() => { setPromoGenerationUpdate(null); scrollToTryOn() }}>CREATE NOW</button>
-      </div>
-    </div>}
+      </>}
+    </Popup>
 
   </div>
 }

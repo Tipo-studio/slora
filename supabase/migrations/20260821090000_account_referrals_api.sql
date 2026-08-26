@@ -8,13 +8,17 @@ alter table public.users
   add column if not exists referral_code text,
   add column if not exists referred_by_user_id uuid references public.users(id) on delete set null;
 
+-- Ensure every existing auth account gets a referral code before the NOT NULL
+-- constraint is applied. The trigger below handles future accounts.
 update public.users
 set referral_code = upper(substr(replace(id::text, '-', ''), 1, 8))
 where referral_code is null;
 
 alter table public.users
   alter column referral_code set default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8));
-alter table public.users alter column referral_code set not null;
+
+alter table public.users
+  alter column referral_code set not null;
 
 create unique index if not exists users_referral_code_key on public.users(referral_code);
 create index if not exists users_referred_by_user_id_idx on public.users(referred_by_user_id);
@@ -105,3 +109,6 @@ grant execute on function public.get_my_referral_history(integer) to authenticat
 
 alter table public.referral_rewards enable row level security;
 revoke all on public.referral_rewards from anon, authenticated;
+
+-- Make newly-created RPCs visible to PostgREST immediately after migration.
+notify pgrst, 'reload schema';

@@ -60,10 +60,8 @@
 .account-page-title { max-width: 720px; margin: var(--space-2) 0 0; color: var(--color-ink); font: 400 var(--headline)/1.08 var(--font-display); letter-spacing: .01em; }
 .account-page-lead { max-width: 620px; margin: var(--space-3) 0 0; color: var(--color-muted); font: 300 var(--body)/1.6 var(--font-body); }
 .account-page-lead strong { color: var(--color-ink); font-weight: 600; }
-.account-page-hero-art { position: relative; display: grid; width: 280px; height: 240px; flex: 0 0 280px; place-items: center; }
-.account-page-art-glow { position: absolute; width: 190px; height: 190px; border-radius: var(--radius-outer); background: var(--color-upload); transform: rotate(12deg); }
-.account-page-art-card { position: relative; display: grid; width: 176px; height: 176px; place-items: center; align-content: center; gap: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-outer); background: rgba(255,255,255,.82); box-shadow: 0 16px 32px rgba(15,23,42,.12); transform: rotate(-6deg); }
-.account-page-art-card span { color: var(--color-ink); }.account-page-art-card b { font: 400 24px/1 var(--font-display); }
+.account-page-hero-art { display: flex; width: min(50vw, 520px); height: min(620px, 72vh); flex: 1 1 50%; min-height: 420px; align-items: center; justify-content: center; }
+.account-page-reward-image { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
 
 .account-page-referral-panel,
 .account-page-table-wrap { border: 1px solid var(--color-border); border-radius: var(--radius-outer); background: rgba(255,255,255,.78); box-shadow: 0 3px 3px rgba(2,8,13,.06), inset 0 1px 0 rgba(255,255,255,.8); backdrop-filter: blur(4px); }

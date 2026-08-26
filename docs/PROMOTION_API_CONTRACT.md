@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Code | `TIPOSTUDIO` |
-| Grant | 5 generation credits |
+| Grant | 20 generation credits |
 | Global limit | First 5 eligible registered users |
 | Eligibility | Authenticated, non-anonymous user; one successful redemption per user |
 
@@ -28,8 +28,8 @@ Success response:
 ```json
 {
   "code": "TIPOSTUDIO",
-  "generationsGranted": 5,
-  "creditsRemaining": 5,
+  "generationsGranted": 20,
+  "creditsRemaining": 20,
   "package": null
 }
 ```
@@ -48,7 +48,7 @@ Recommended error responses:
 
 1. Validate the Supabase JWT and resolve `user_id` server-side.
 2. Normalize code input (`trim`, uppercase); do not trust a client-side value for grant size or limit.
-3. Store promotions with `max_redemptions = 5` and grant amount `5`.
+3. Store promotions with the configured redemption limit and grant amount `20` for the active code.
 4. Use one database transaction to:
    - lock the promotion row;
    - reject exhausted or inactive promotion;

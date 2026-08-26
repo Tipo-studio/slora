@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
-import { Check, Gift, X } from 'lucide-react'
+import { Check, Gift } from 'lucide-react'
 import { redeemPromoCode } from '../../lib/sivitai'
+import { Popup } from '../ui/Popup'
 
 function PromoCodeRedeemer({ onRedeemed }: { onRedeemed: (update: { granted: number; remaining: number }) => void }) {
   const inputId = useId()
@@ -10,11 +11,21 @@ function PromoCodeRedeemer({ onRedeemed }: { onRedeemed: (update: { granted: num
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRedeemed, setIsRedeemed] = useState(false)
 
+  const close = () => {
+    if (isSubmitting) return
+    setIsOpen(false)
+  }
+
   useEffect(() => {
     if (!isOpen) return
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setIsOpen(false) }
     window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape)
+      document.body.style.overflow = previousOverflow
+    }
   }, [isOpen])
 
   const submit = async () => {
@@ -32,12 +43,9 @@ function PromoCodeRedeemer({ onRedeemed }: { onRedeemed: (update: { granted: num
       setMessage(`${result.generationsGranted} free generations added.`)
       setIsRedeemed(true)
       onRedeemed({ granted: result.generationsGranted, remaining: result.creditsRemaining })
+      // Keep the input popup open so the feedback remains visible in context.
     } catch (error) {
       const nextMessage = error instanceof Error ? error.message : 'Unable to redeem this code.'
-      if (/already redeemed/i.test(nextMessage)) {
-        setCode('TIPOSTUDIO')
-        setIsRedeemed(true)
-      }
       setMessage(nextMessage)
     } finally {
       setIsSubmitting(false)
@@ -49,21 +57,16 @@ function PromoCodeRedeemer({ onRedeemed }: { onRedeemed: (update: { granted: num
       {isRedeemed ? <Check size={15} strokeWidth={2} /> : <Gift size={15} strokeWidth={1.5} />}
       <span>{isRedeemed ? 'Code redeemed' : 'Redeem code'}</span>
     </button>
-    {isOpen && <div className="home2-promo-dialog" role="dialog" aria-modal="true" aria-labelledby="home2-promo-title">
-      <button type="button" className="home2-promo-backdrop" onClick={() => setIsOpen(false)} aria-label="Close promo code dialog" />
-      <div className="home2-promo-panel">
-        <button type="button" className="home2-promo-close" onClick={() => setIsOpen(false)} aria-label="Close promo code dialog"><X size={18} strokeWidth={1.75} /></button>
-        <Gift size={24} strokeWidth={1.5} aria-hidden="true" />
-        <h2 id="home2-promo-title">Redeem promo code</h2>
-        <p>Enter your code to add free generations to your account.</p>
-        <label htmlFor={inputId}>Promo code</label>
-        <div className="home2-promo-field">
-          <input id={inputId} value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="Enter code" maxLength={40} autoComplete="off" disabled={isSubmitting || isRedeemed} />
-          <button type="button" onClick={() => void submit()} disabled={isSubmitting || isRedeemed}>{isRedeemed ? 'Applied' : isSubmitting ? 'Applying…' : 'Apply'}</button>
+    <Popup open={isOpen} title="promo code" titleId="home2-promo-title" onClose={close} closeDisabled={isSubmitting} className="home2-promo-popup">
+        <div className="home2-promo-art" aria-hidden="true"><img src="/images/reward-code-banner.png" alt="" /></div>
+        <div className="home2-promo-form">
+          <label htmlFor={inputId}>promo code</label>
+          <input id={inputId} value={code} onChange={(event) => { setCode(event.target.value.toUpperCase()); setMessage('') }} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void submit() } }} placeholder="code" maxLength={40} autoComplete="off" disabled={isSubmitting || isRedeemed} />
+          <p>Enter your code to add free generations to your account.</p>
+          <button type="button" onClick={() => void submit()} disabled={isSubmitting || isRedeemed}>{isRedeemed ? 'APPLIED' : isSubmitting ? 'APPLYING…' : 'APPLY'}</button>
+          {message && <div className={`home2-promo-feedback ${isRedeemed ? 'is-success' : 'is-error'}`} role="status"><strong>{isRedeemed ? 'Redeem successful' : 'Unable to redeem code'}</strong><span>{message}</span></div>}
         </div>
-        {message && <p className={isRedeemed ? 'is-success' : 'is-error'} role="status">{message}</p>}
-      </div>
-    </div>}
+    </Popup>
   </>
 }
 

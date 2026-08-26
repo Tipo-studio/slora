@@ -3,16 +3,22 @@ import type { FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { isAuthProviderEnabled, supabase } from '../../lib/supabase'
 
-function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAuthenticated: (user: User) => void }) {
+function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { onClose: () => void; onAuthenticated: (user: User) => void; initialMode?: 'sign-in' | 'sign-up' }) {
   const emailId = useId()
   const passwordId = useId()
   const emailInputRef = useRef<HTMLInputElement>(null)
-  const [mode, setMode] = useState<'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password'>(() => window.location.hash.includes('type=recovery') ? 'reset-password' : 'sign-in')
+  const [mode, setMode] = useState<'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password'>(() => {
+    if (initialMode === 'sign-up') return 'sign-up'
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const queryType = new URLSearchParams(window.location.search).get('type')
+    return hashParams.get('type') === 'recovery' || queryType === 'recovery' ? 'reset-password' : 'sign-in'
+  })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [isConfirmationPending, setIsConfirmationPending] = useState(false)
 
   useEffect(() => {
     emailInputRef.current?.focus()
@@ -26,7 +32,22 @@ function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAut
   const switchMode = (nextMode: 'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password') => {
     setMode(nextMode)
     setPassword('')
+    setIsConfirmationPending(false)
     resetFeedback()
+  }
+
+  const resendConfirmationEmail = async () => {
+    resetFeedback()
+    setIsSubmitting(true)
+    try {
+      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email })
+      if (resendError) setError(resendError.message)
+      else setMessage('Confirmation email sent. Please check your inbox and spam folder.')
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to resend confirmation email.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const signInWithGoogle = async () => {
@@ -66,10 +87,20 @@ function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAut
         if (resetError) setError(resetError.message)
         else setMessage('If an account exists for this email, we sent a password reset link.')
       } else if (mode === 'reset-password') {
+        const { data, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError) {
+          setError(sessionError.message)
+          return
+        }
+        if (!data.session) {
+          setError('This password reset link is invalid or has expired. Please request a new link.')
+          return
+        }
         const { error: updateError } = await supabase.auth.updateUser({ password })
         if (updateError) setError(updateError.message)
         else {
           window.history.replaceState({}, '', window.location.pathname)
+          window.location.hash = ''
           setMessage('Your password has been updated. You can now sign in.')
           setPassword('')
           setMode('sign-in')
@@ -78,7 +109,13 @@ function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAut
         const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
         if (signInError) {
-          setError(signInError.message)
+          if (signInError.message.toLowerCase().includes('email not confirmed')) {
+            setIsConfirmationPending(true)
+            setMessage('Please confirm your email before signing in.')
+            setError('')
+          } else {
+            setError(signInError.message)
+          }
         } else if (data.user) {
           onAuthenticated(data.user)
         } else {
@@ -96,7 +133,8 @@ function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAut
         } else if (data.session && data.user) {
           onAuthenticated(data.user)
         } else {
-          setMessage('Account created. Check your email to confirm your account, then sign in.')
+          setIsConfirmationPending(true)
+          setMessage('Account created. We sent a confirmation link to your email.')
         }
       }
     } catch (requestError) {
@@ -116,7 +154,13 @@ function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAut
           <img className="login-logo" src="/images/full-logo.svg" alt="Slora" />
           <p id="login-title">{mode === 'forgot-password' ? 'Reset your password' : mode === 'reset-password' ? 'Choose a new password' : 'Sign in now to create for free'}</p>
         </div>
-        <form className="login-form" onSubmit={submitEmailPassword}>
+        {isConfirmationPending ? <div className="login-form">
+          <p className="login-status login-status-success" role="status">{message}</p>
+          <p className="login-status">Open the link in your email to confirm your account. After confirmation, return here and sign in.</p>
+          <button type="button" className="login-submit button-primary" onClick={() => switchMode('sign-in')} disabled={isSubmitting}>BACK TO SIGN IN</button>
+          <button type="button" className="login-back-to-signin" onClick={resendConfirmationEmail} disabled={isSubmitting}>{isSubmitting ? 'SENDING…' : 'RESEND CONFIRMATION EMAIL'}</button>
+          {error && <p className="login-status login-status-error" role="alert">{error}</p>}
+        </div> : <form className="login-form" onSubmit={submitEmailPassword}>
           {(mode === 'sign-in' || mode === 'sign-up') && <>
             <button type="button" className="login-google" onClick={signInWithGoogle} disabled={isSubmitting}><img src="/images/login/google.svg" alt="" aria-hidden="true" /><span>Sign in with Google</span></button>
             <p className="login-or">or</p>
@@ -138,7 +182,7 @@ function LoginOverlay({ onClose, onAuthenticated }: { onClose: () => void; onAut
           {(mode === 'forgot-password' || mode === 'reset-password') && <button type="button" className="login-back-to-signin" onClick={() => switchMode('sign-in')} disabled={isSubmitting}>Back to sign in</button>}
           {message && <p className="login-status login-status-success" role="status">{message}</p>}
           {error && <p className="login-status login-status-error" role="alert">{error}</p>}
-        </form>
+        </form>}
         <p className="login-terms">By proceeding with the login process, you agree to our <a href="https://www.weshop.ai/policy" target="_blank" rel="noreferrer">User Service Agreement</a> and <a href="https://www.weshop.ai/privacy" target="_blank" rel="noreferrer">Privacy Policy.</a></p>
       </div>
     </div>

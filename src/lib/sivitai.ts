@@ -59,7 +59,7 @@ type Generation = {
   errorMessage: string | null
 }
 
-type ApiError = { message?: string }
+type ApiError = { message?: string; error?: string; details?: string }
 
 type LibraryImage = {
   id: string
@@ -130,7 +130,10 @@ async function request<T>(path: string, init: RequestInit = {}, auth: 'required'
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers, signal: abortController.signal })
     const payload: T | ApiError = await response.json().catch(() => ({}))
-    if (!response.ok) throw new Error((payload as ApiError).message ?? 'Unable to complete this request.')
+    if (!response.ok) {
+      const apiError = payload as ApiError
+      throw new Error(apiError.message ?? apiError.error ?? apiError.details ?? 'Unable to complete this request.')
+    }
     return payload as T
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw new Error('The request timed out. Please try again.')
@@ -221,35 +224,27 @@ export function redeemPromoCode(code: string) {
   }, 'required')
 }
 
+export type JoinBetaSubmission = {
+  role: string
+  goals: string[]
+  task: string
+  exampleName: string | null
+}
+
+export async function submitJoinBeta(submission: JoinBetaSubmission) {
+  const { data, error } = await supabase.rpc('submit_join_beta', {
+    p_role: submission.role,
+    p_goals: submission.goals,
+    p_task: submission.task,
+    p_example_name: submission.exampleName,
+  })
+  if (error) throw new Error(error.message)
+  return data as { generationsGranted: number; creditsRemaining: number; alreadySubmitted: boolean }
+}
+
 export type BillingSummary = {
   balance: number
   package: string | null
-}
-
-export type BillingCheckoutResponse = {
-  orderId: string
-  provider: 'paypal'
-  providerCheckoutId: string
-  approvalUrl: string
-}
-
-export type BillingCaptureResponse = {
-  orderId: string
-  status: 'paid'
-  creditBalance: number
-}
-
-export function createBillingCheckout(priceId: string) {
-  return request<BillingCheckoutResponse>('/api/billing/paypal/checkout', {
-    method: 'POST',
-    body: JSON.stringify({ priceId }),
-  }, 'required')
-}
-
-export function captureBillingOrder(orderId: string) {
-  return request<BillingCaptureResponse>(`/api/billing/paypal/orders/${encodeURIComponent(orderId)}/capture`, {
-    method: 'POST',
-  }, 'required')
 }
 
 type BillingSummaryApiResponse = {

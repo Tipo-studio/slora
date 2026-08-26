@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './account-page.css'
 import type { User } from '@supabase/supabase-js'
-import { Check, Copy, Gift, QrCode } from 'lucide-react'
+import { Check, Copy, QrCode } from 'lucide-react'
 import { SiteHeader } from '../SiteHeader'
 import { requestReferralHistory, requestReferralLeaderboard, requestReferralSummary, type ReferralHistoryItem, type ReferralLeaderboardItem, type ReferralSummary } from '../../lib/sivitai'
 
@@ -29,19 +29,34 @@ function AccountPage({ user, onBack, onSignOut, onOpenJoinBeta, onOpenLibrary, o
   useEffect(() => {
     if (!user || user.is_anonymous) return
     let isCurrent = true
-    void Promise.all([requestReferralSummary(), requestReferralLeaderboard(), requestReferralHistory()])
-      .then(([summary, leaderboardItems, historyItems]) => {
-        if (!isCurrent) return
-        setReferral(summary)
-        setLeaderboard(leaderboardItems)
-        setHistory(historyItems)
-      })
+
+    // Load each panel independently so a broken optional report does not hide
+    // the account's referral code and link.
+    void requestReferralSummary()
+      .then((summary) => { if (isCurrent) setReferral(summary) })
       .catch((requestError: unknown) => { if (isCurrent) setError(requestError instanceof Error ? requestError.message : 'Unable to load referral details.') })
+    void requestReferralLeaderboard()
+      .then((items) => { if (isCurrent) setLeaderboard(items) })
+      .catch(() => undefined)
+    void requestReferralHistory()
+      .then((items) => { if (isCurrent) setHistory(items) })
+      .catch(() => undefined)
+
     return () => { isCurrent = false }
   }, [user])
 
+  useEffect(() => {
+    const reloadReferral = () => {
+      if (!user || user.is_anonymous) return
+      void requestReferralSummary().then(setReferral).catch(() => undefined)
+      void requestReferralLeaderboard().then(setLeaderboard).catch(() => undefined)
+      void requestReferralHistory().then(setHistory).catch(() => undefined)
+    }
+    window.addEventListener('referral-completed', reloadReferral)
+    return () => window.removeEventListener('referral-completed', reloadReferral)
+  }, [user])
 
-  const referralLink = referral ? `${window.location.origin}/?ref=${encodeURIComponent(referral.referralCode)}` : ''
+  const referralLink = referral ? `${window.location.origin}/signup?ref=${encodeURIComponent(referral.referralCode)}` : ''
   const copyText = async (text: string) => {
     if (!text) return
     await navigator.clipboard.writeText(text)
@@ -54,7 +69,7 @@ function AccountPage({ user, onBack, onSignOut, onOpenJoinBeta, onOpenLibrary, o
     <div className="account-page-grid" aria-hidden="true" />
     <SiteHeader onOpenJoinBeta={onOpenJoinBeta} onOpenLibrary={onOpenLibrary} onOpenAccount={onOpenAccount} onOpenFunction={onOpenFunction} onOpenPaywall={onOpenPaywall} user={user} onSignOut={onSignOut} onAuthenticated={onAuthenticated} onLogoClick={onBack} />
     <main className="account-page-content">
-      <section className="account-page-hero"><div><h1 className="account-page-title">Invite friends.<br />Get free<br />generations!</h1><p className="account-page-lead">Earn up to <strong>100 generations</strong> as a reward for every successful referral.</p></div><div className="account-page-hero-art" aria-hidden="true"><div className="account-page-art-glow" /><div className="account-page-art-card"><span><Gift size={56} /></span><b>LGPSM</b></div></div></section>
+      <section className="account-page-hero"><div><h1 className="account-page-title">Invite friends.<br />Get free<br />generations!</h1><p className="account-page-lead">Earn up to <strong>100 generations</strong> as a reward for every successful referral.</p></div><div className="account-page-hero-art" aria-hidden="true"><img className="account-page-reward-image" src="/images/account-reward.png" alt="" /></div></section>
       <section className="account-page-referral-panel">
         {error && <p className="account-page-error" role="alert">{error}</p>}
         <div className="account-page-referral-fields"><label>Referral code<div className="account-page-input"><input readOnly value={referral?.referralCode ?? 'Loading referral code…'} /><button type="button" onClick={() => void copyText(referral?.referralCode ?? '')} disabled={!referral} aria-label="Copy referral code"><Copy size={16} /></button></div></label><label className="account-page-link-field">Referral link<div className="account-page-input"><input readOnly value={referralLink || 'Loading referral link…'} /><button type="button" onClick={() => void copyReferralLink()} disabled={!referralLink} aria-label="Copy referral link">{copied ? <Check size={16} /> : <Copy size={16} />}</button></div></label><div className="account-page-invite-actions"><button type="button" className="account-page-invite" onClick={() => void copyReferralLink()}>Invite friends</button><button type="button" className="account-page-qr" aria-label="QR code"><QrCode size={20} /></button></div></div>

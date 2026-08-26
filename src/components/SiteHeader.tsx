@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { CircleUserRound, Gift, Images, LogOut, Sparkles, UserRound } from 'lucide-react'
-import { Corner } from './ui/Corner'
+
 import { LoginOverlay } from '../features/auth/LoginOverlay'
 import { PromoCodeRedeemer } from './home/PromoCodeRedeemer'
 import { requestBillingSummary } from '../lib/sivitai'
+import { getAvatarUrl } from '../lib/avatar'
 
-type SiteHeaderProps = {
+export type SiteHeaderProps = {
   onOpenJoinBeta: () => void
   onOpenLibrary: () => void
   onOpenAccount: () => void
@@ -18,10 +19,6 @@ type SiteHeaderProps = {
   onLogoClick?: () => void
 }
 
-function getAvatarUrl(user: User) {
-  if (user.user_metadata.avatar_url) return String(user.user_metadata.avatar_url)
-  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=e2e8f0,cbd5e1,fef3c7,fee2e2,dcfce7`
-}
 
 function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction, onOpenPaywall, user, onSignOut, onAuthenticated, onLogoClick }: SiteHeaderProps) {
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
@@ -60,7 +57,11 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
   useEffect(() => {
     if (!isAccountMenuOpen) return
     const closeMenu = (event: MouseEvent) => {
-      if (!accountMenuRef.current?.contains(event.target as Node)) setIsAccountMenuOpen(false)
+      const target = event.target as Node
+      // The promo dialog is portaled to body, so keep the account menu mounted
+      // while the user clicks or types inside its controls.
+      if (target instanceof Element && target.closest('.app-popup')) return
+      if (!accountMenuRef.current?.contains(target)) setIsAccountMenuOpen(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setIsAccountMenuOpen(false) }
     window.addEventListener('mousedown', closeMenu)
@@ -82,7 +83,7 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
       </button>
       <nav aria-label="Main navigation" className="home2-header-nav flex items-center font-medium uppercase tracking-[.2em]" style={{ gap: 'var(--gap-nav)', fontSize: 'var(--nav)' }}>
-        <button type="button" onClick={onOpenJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Corner position="tl" /><Corner position="tr" /><Corner position="bl" /><Corner position="br" /><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN BETA NOW</span></button>
+        <button type="button" onClick={onOpenJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN BETA NOW</span></button>
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
             <button type="button" className="home2-avatar-button" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}><img src={getAvatarUrl(user)} alt="" /></button>
@@ -103,4 +104,11 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
   </>
 }
 
-export { SiteHeader }
+function SimplePageHeader({ onBack, ariaLabel = 'Back to home' }: { onBack: () => void; ariaLabel?: string }) {
+  return <header className="home2-header page-header-shell fixed inset-x-0 top-0 z-40 flex items-center justify-between" style={{ paddingInline: 'var(--pad-x)', paddingTop: 'var(--header-pt)', paddingBottom: 'var(--header-pb)' }}>
+    <button type="button" className="home2-header-logo-button transition-opacity hover:opacity-80" onClick={onBack} aria-label="LGPSM home"><img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" /></button>
+    <button type="button" className="paywall-back" onClick={onBack}><span aria-hidden="true">←</span>{ariaLabel}</button>
+  </header>
+}
+
+export { SimplePageHeader, SiteHeader }
