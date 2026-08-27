@@ -129,10 +129,19 @@ async function request<T>(path: string, init: RequestInit = {}, auth: 'required'
 
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers, signal: abortController.signal })
-    const payload: T | ApiError = await response.json().catch(() => ({}))
+    const responseText = await response.text()
+    let payload: T | ApiError = {} as T
+    if (responseText) {
+      try {
+        payload = JSON.parse(responseText) as T | ApiError
+      } catch {
+        payload = {} as T
+      }
+    }
     if (!response.ok) {
       const apiError = payload as ApiError
-      throw new Error(apiError.message ?? apiError.error ?? apiError.details ?? 'Unable to complete this request.')
+      const serverMessage = apiError.message ?? apiError.error ?? apiError.details ?? responseText.trim()
+      throw new Error(`${response.status} ${response.statusText}: ${serverMessage || 'Unable to complete this request.'}`)
     }
     return payload as T
   } catch (error) {
@@ -203,6 +212,7 @@ function getImageReference(response: ImageUploadResponse): ImageReference {
 }
 
 export async function uploadSourceImage(dataUrl: string, name: string) {
+  if (!dataUrl.startsWith('data:image/')) throw new Error('Please select a valid image file.')
   const response = await request<ImageUploadResponse>('/generations/source-images', {
     method: 'POST',
     body: JSON.stringify({ dataUrl, name }),

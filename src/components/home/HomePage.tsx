@@ -32,6 +32,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
   const [currentPackage, setCurrentPackage] = useState<string | null>(null)
+  const [hasSubmittedJoinBeta, setHasSubmittedJoinBeta] = useState(() => window.localStorage.getItem('join-beta-submitted') === 'true')
   const [activeCoreTab, setActiveCoreTab] = useState(0)
   const [promoGenerationUpdate, setPromoGenerationUpdate] = useState<{ granted: number; remaining: number } | null>(null)
   const accountMenuRef = useRef<HTMLDivElement>(null)
@@ -95,6 +96,12 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
   }, [isAuthenticatedUser])
 
   useEffect(() => {
+    const refreshJoinBetaStatus = () => setHasSubmittedJoinBeta(window.localStorage.getItem('join-beta-submitted') === 'true')
+    window.addEventListener('join-beta-submitted', refreshJoinBetaStatus)
+    return () => window.removeEventListener('join-beta-submitted', refreshJoinBetaStatus)
+  }, [])
+
+  useEffect(() => {
     if (!isAccountMenuOpen) return
     const closeMenu = (event: MouseEvent) => {
       if (!accountMenuRef.current?.contains(event.target as Node)) setIsAccountMenuOpen(false)
@@ -118,7 +125,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
       </a>
       <nav aria-label="Main navigation" className="home2-header-nav flex items-center font-medium uppercase tracking-[.2em]" style={{ gap: 'var(--gap-nav)', fontSize: 'var(--nav)' }}>
-        <button type="button" onClick={openJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN BETA NOW</span></button>
+        {!hasSubmittedJoinBeta && <button type="button" onClick={openJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>GET FREE CODE</span></button>}
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
             <button type="button" className="home2-avatar-button" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}>
@@ -147,7 +154,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
     </header>
     <main id="hero-section" className="relative z-10 flex min-h-screen flex-1 flex-col justify-between gap-10 lg:flex-row lg:items-center" style={{ paddingInline: 'var(--pad-x)', paddingBlock: 'var(--main-py)' }}>
       <section className="flex flex-col items-start"><div className="relative h-[var(--corner)] w-[var(--corner)]"><Corner position="tl" /></div><img src="/images/lgpsm-hero-logo.svg" alt="Future Forward Fashion" className="mt-[var(--section-gap)] block h-auto w-[min(34rem,82vw)]" /><p className="mt-[var(--section-gap)] max-w-[min(31rem,82vw)] font-jakarta text-[var(--body)] italic leading-relaxed tracking-[.02em] text-gray-700">From imagination to stunning visuals in seconds. Create, edit, and restyle with effortless AI.</p><div className="relative mt-[var(--section-gap)] h-[var(--corner)] w-[var(--corner)]"><Corner position="bl" /></div><div className="mt-[var(--section-gap)] flex flex-wrap items-center" style={{ gap: 'var(--btn-gap)' }}>
-        <button type="button" onClick={openJoinBeta} className="button-primary">JOIN BETA <img className="hero-button-arrow-light" src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>
+        {!hasSubmittedJoinBeta && <button type="button" onClick={openJoinBeta} className="button-primary">GET FREE CODE <img className="hero-button-arrow-light" src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>}
         <button type="button" onClick={scrollToTryOn} className="button-secondary">TRY FREE <img src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>
       </div></section>
       <button type="button" onClick={scrollToNextSection} className="relative self-end text-right transition-opacity hover:opacity-70" style={{ minWidth: 'var(--feature-min)', padding: 'var(--feature-pad)' }} aria-label="Explore core function"><Corner position="tl"/><Corner position="tr"/><Corner position="bl"/><Corner position="br"/><span className="flex flex-col items-end gap-4"><img src="/images/lgpsm-feature-icon.svg" alt="" className="block h-auto w-[var(--globe)]" /><span className="font-semibold uppercase tracking-[.18em]" style={{ fontSize: 'var(--body)', lineHeight: 1.65 }}>Explore core function</span></span></button>

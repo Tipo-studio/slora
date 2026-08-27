@@ -53,16 +53,16 @@ function PromoCodeRedeemer({ onRedeemed }: { onRedeemed: (update: { granted: num
   }
 
   return <>
-    <button type="button" className={`home2-promo-trigger ${isRedeemed ? 'is-redeemed' : ''}`} onClick={() => setIsOpen(true)} aria-haspopup="dialog" aria-expanded={isOpen}>
+    <button type="button" className={`home2-promo-trigger ${isRedeemed ? 'is-redeemed' : ''}`} onClick={() => setIsOpen(true)} aria-label="Apply referral code" aria-haspopup="dialog" aria-expanded={isOpen}>
       {isRedeemed ? <Check size={15} strokeWidth={2} /> : <Gift size={15} strokeWidth={1.5} />}
-      <span>{isRedeemed ? 'Code redeemed' : 'Redeem code'}</span>
+      <span>{isRedeemed ? 'Code applied' : 'Apply code'}</span>
     </button>
-    <Popup open={isOpen} title="promo code" titleId="home2-promo-title" onClose={close} closeDisabled={isSubmitting} className="home2-promo-popup">
+    <Popup open={isOpen} title="referral code" titleId="home2-promo-title" onClose={close} closeDisabled={isSubmitting} className="home2-promo-popup">
         <div className="home2-promo-art" aria-hidden="true"><img src="/images/reward-code-banner.png" alt="" /></div>
         <div className="home2-promo-form">
-          <label htmlFor={inputId}>promo code</label>
+          <label htmlFor={inputId}>referral code</label>
           <input id={inputId} value={code} onChange={(event) => { setCode(event.target.value.toUpperCase()); setMessage('') }} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void submit() } }} placeholder="code" maxLength={40} autoComplete="off" disabled={isSubmitting || isRedeemed} />
-          <p>Enter your code to add free generations to your account.</p>
+          <p>Enter your referral code to add free generations to your account.</p>
           <button type="button" onClick={() => void submit()} disabled={isSubmitting || isRedeemed}>{isRedeemed ? 'APPLIED' : isSubmitting ? 'APPLYING…' : 'APPLY'}</button>
           {message && <div className={`home2-promo-feedback ${isRedeemed ? 'is-success' : 'is-error'}`} role="status"><strong>{isRedeemed ? 'Redeem successful' : 'Unable to redeem code'}</strong><span>{message}</span></div>}
         </div>

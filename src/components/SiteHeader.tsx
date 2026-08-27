@@ -24,9 +24,16 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
+  const [hasSubmittedJoinBeta, setHasSubmittedJoinBeta] = useState(() => window.localStorage.getItem('join-beta-submitted') === 'true')
   const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const accountMenuRef = useRef<HTMLDivElement>(null)
   const isAuthenticatedUser = Boolean(user && !user.is_anonymous)
+
+  useEffect(() => {
+    const refreshJoinBetaStatus = () => setHasSubmittedJoinBeta(window.localStorage.getItem('join-beta-submitted') === 'true')
+    window.addEventListener('join-beta-submitted', refreshJoinBetaStatus)
+    return () => window.removeEventListener('join-beta-submitted', refreshJoinBetaStatus)
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticatedUser) return
@@ -83,7 +90,7 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
       </button>
       <nav aria-label="Main navigation" className="home2-header-nav flex items-center font-medium uppercase tracking-[.2em]" style={{ gap: 'var(--gap-nav)', fontSize: 'var(--nav)' }}>
-        <button type="button" onClick={onOpenJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN BETA NOW</span></button>
+        {!hasSubmittedJoinBeta && <button type="button" onClick={onOpenJoinBeta} className="home2-join-beta-button" aria-label="Get free code"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>GET FREE CODE</span></button>}
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
             <button type="button" className="home2-avatar-button" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}><img src={getAvatarUrl(user)} alt="" /></button>
