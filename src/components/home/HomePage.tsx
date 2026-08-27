@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { CircleUserRound, Gift, Images, LogOut, Sparkles, UserRound } from 'lucide-react'
+import { CircleUserRound, Gift, Images, LogOut, UserRound } from 'lucide-react'
 import { Corner } from '../ui/Corner'
 import { ImageRevealBackground } from './ImageRevealBackground'
-import { CoreInteractiveGrid } from '../../features/core/CoreInteractiveGrid'
+
 import { LoginOverlay } from '../../features/auth/LoginOverlay'
 import { PromoCodeRedeemer } from './PromoCodeRedeemer'
 import { Popup } from '../ui/Popup'
 import { requestBillingSummary } from '../../lib/sivitai'
 import { getAvatarUrl } from '../../lib/avatar'
+import { GenerationIcon } from '../ui/GenerationIcon'
+
+function PlanIcon({ size = 16 }: { size?: number }) {
+  return <GenerationIcon size={size} />
+}
 
 const BG_IMAGE_1 = '/images/lgpsm-background-base.png'
 const CORE_VIDEO_SOURCES = [
@@ -27,7 +32,6 @@ function scrollToSection(section: HTMLElement | null) {
 
 function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction, onOpenPaywall, user, onSignOut, onAuthenticated }: { onOpenJoinBeta: () => void; onOpenLibrary: () => void; onOpenAccount: () => void; onOpenFunction: (tool?: 'try-on' | 'magic-editor') => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio', returnToResult?: boolean) => void; user: User | null; onSignOut: () => Promise<void>; onAuthenticated: (user: User) => void }) {
   const nextSectionRef = useRef<HTMLElement>(null)
-  const [isCoreFunctionVisible, setIsCoreFunctionVisible] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
@@ -55,14 +59,6 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
   }
 
   const openJoinBeta = onOpenJoinBeta
-
-  useEffect(() => {
-    const section = nextSectionRef.current
-    if (!section) return
-    const observer = new IntersectionObserver(([entry]) => setIsCoreFunctionVisible(entry.isIntersecting), { threshold: 0.6 })
-    observer.observe(section)
-    return () => observer.disconnect()
-  }, [])
 
   useEffect(() => {
     // Creative tools are hosted on the dedicated /function route.
@@ -119,7 +115,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
 
   return <div className="font-jakarta relative flex min-h-screen flex-col justify-between overflow-x-clip bg-white text-black">
     <ImageRevealBackground />
-    {isCoreFunctionVisible && <CoreInteractiveGrid />}
+
     <header className="home2-header fixed inset-x-0 top-0 z-40 flex items-center justify-between" style={{ paddingInline: 'var(--pad-x)', paddingTop: 'var(--header-pt)', paddingBottom: 'var(--header-pb)' }}>
       <a className="transition-opacity hover:opacity-80" href="#hero-section" aria-label="LGPSM home" onClick={(event) => { event.preventDefault(); scrollToSection(document.getElementById('hero-section')) }}>
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
@@ -128,18 +124,19 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
         {!hasSubmittedJoinBeta && <button type="button" onClick={openJoinBeta} className="home2-join-beta-button" aria-label="Join beta now"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>GET FREE CODE</span></button>}
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
-            <button type="button" className="home2-avatar-button" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}>
-              <img src={getAvatarUrl(user)} alt="" />
+            <button type="button" className="home2-account-summary home2-account-summary-header" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}>
+              <div className="home2-account-avatar" aria-hidden="true"><img src={getAvatarUrl(user)} alt="" /></div>
+              <div className="home2-generation-balance" aria-label={`${freeGenerationsRemaining} generations remaining`}><GenerationIcon size={24} /><span>{freeGenerationsRemaining}</span></div>
             </button>
             {isAccountMenuOpen && <div className="home2-account-dropdown" role="menu" aria-label="Account menu">
-              <div className="home2-account-summary">
-                <div className="home2-account-avatar" aria-hidden="true"><img src={getAvatarUrl(user)} alt="" /></div>
-                <div className="home2-account-details"><span title={user.email}>{user.email}</span><div><small>{currentPackage ? `${currentPackage} package` : 'Free plan'}</small><button type="button" onClick={() => onOpenPaywall('studio')}>Upgrade</button></div></div>
+              <div className="home2-account-item home2-plan-item">
+                <span><PlanIcon />Free plan</span>
+                <button type="button" className="home2-account-upgrade" onClick={() => onOpenPaywall('studio')}>Upgrade</button>
               </div>
-              <button type="button" className="home2-account-item" role="menuitem" onClick={scrollToTryOn}><span><Sparkles size={16} strokeWidth={1.5} />Generation</span><strong><Sparkles size={10} strokeWidth={1.5} />{freeGenerationsRemaining}</strong></button>
+              <button type="button" className="home2-account-item" role="menuitem" onClick={scrollToTryOn}><span><GenerationIcon />Generation</span></button>
               <PromoCodeRedeemer onRedeemed={({ remaining }) => { setFreeGenerationsRemaining(remaining) }} />
               <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenLibrary}><span><Images size={16} strokeWidth={1.5} />My library</span></button>
-              <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenAccount}><span><CircleUserRound size={16} strokeWidth={1.5} />My account</span></button>
+              <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenAccount}><span><CircleUserRound size={16} strokeWidth={1.5} />Referral</span></button>
               <div className="home2-account-divider" />
               <button type="button" className="home2-account-item" role="menuitem" onClick={() => void onSignOut()}><span><LogOut size={16} strokeWidth={1.5} />Sign out</span></button>
             </div>}
@@ -155,11 +152,11 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
     <main id="hero-section" className="relative z-10 flex min-h-screen flex-1 flex-col justify-between gap-10 lg:flex-row lg:items-center" style={{ paddingInline: 'var(--pad-x)', paddingBlock: 'var(--main-py)' }}>
       <section className="flex flex-col items-start"><div className="relative h-[var(--corner)] w-[var(--corner)]"><Corner position="tl" /></div><img src="/images/lgpsm-hero-logo.svg" alt="Future Forward Fashion" className="mt-[var(--section-gap)] block h-auto w-[min(34rem,82vw)]" /><p className="mt-[var(--section-gap)] max-w-[min(31rem,82vw)] font-jakarta text-[var(--body)] italic leading-relaxed tracking-[.02em] text-gray-700">From imagination to stunning visuals in seconds. Create, edit, and restyle with effortless AI.</p><div className="relative mt-[var(--section-gap)] h-[var(--corner)] w-[var(--corner)]"><Corner position="bl" /></div><div className="mt-[var(--section-gap)] flex flex-wrap items-center" style={{ gap: 'var(--btn-gap)' }}>
         {!hasSubmittedJoinBeta && <button type="button" onClick={openJoinBeta} className="button-primary">GET FREE CODE <img className="hero-button-arrow-light" src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>}
-        <button type="button" onClick={scrollToTryOn} className="button-secondary">TRY FREE <img src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>
+        <button type="button" onClick={scrollToTryOn} className="button-secondary">Try now <img src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>
       </div></section>
       <button type="button" onClick={scrollToNextSection} className="relative self-end text-right transition-opacity hover:opacity-70" style={{ minWidth: 'var(--feature-min)', padding: 'var(--feature-pad)' }} aria-label="Explore core function"><Corner position="tl"/><Corner position="tr"/><Corner position="bl"/><Corner position="br"/><span className="flex flex-col items-end gap-4"><img src="/images/lgpsm-feature-icon.svg" alt="" className="block h-auto w-[var(--globe)]" /><span className="font-semibold uppercase tracking-[.18em]" style={{ fontSize: 'var(--body)', lineHeight: 1.65 }}>Explore core function</span></span></button>
     </main>
-    <section ref={nextSectionRef} id="core-functions" className="core-functions-screen relative z-10 min-h-screen overflow-hidden bg-transparent" aria-labelledby="core-functions-title">
+    <section ref={nextSectionRef} id="core-functions" className="core-functions-screen relative z-10 min-h-screen overflow-hidden" aria-labelledby="core-functions-title">
       <div className="core-functions-content">
         <div className="core-functions-columns">
           <div className="core-functions-menu-column">

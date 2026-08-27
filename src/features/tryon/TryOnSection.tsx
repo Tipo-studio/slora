@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ChangeEvent, type RefObject } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { ChevronLeft, ChevronRight, Download, Maximize2, Pencil, Shirt, Sparkles, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, Maximize2, Pencil, Shirt, X } from 'lucide-react'
 import { createGeneration, getGeneration, getTool, isSafeRemoteUrl, requestBillingSummary, uploadSourceImage, type Generation, type ImageReference, type ToolDefinition } from '../../lib/sivitai'
+import { GenerationIcon } from '../../components/ui/GenerationIcon'
 import { getDeviceId } from '../../lib/freeGeneration'
 import { addLibraryImages } from '../../lib/imageLibrary'
 import { MAGIC_EDITOR_PROMPTS, getMagicEditorPrompt } from './magicEditorPrompts'
@@ -506,8 +507,8 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
       <button type="button" className="tryon-result-action-button" onClick={() => void startNewSessionWithResult('magic-editor')} disabled={uploadingFieldName !== null}><Pencil size={16} strokeWidth={1.75} />Magic edit</button>
       <button type="button" className="tryon-result-action-button" onClick={() => void startNewSessionWithResult('try-on')} disabled={uploadingFieldName !== null}><Shirt size={16} strokeWidth={1.75} />Try-on again</button>
     </div>}</div><div className="tryon-model-illustration" aria-hidden="true"><img className="tryon-model" src="/images/tryon/model.png" alt="" /></div></div>
-    <Popup open={generationBalanceUpdate !== null} title="Generation balance updated" titleId="tryon-generation-balance-title" eyebrow="Generation updated" icon={<Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />} description="Your available generation balance has changed." onClose={() => setGenerationBalanceUpdate(null)} className="home2-generation-popup">
-      {generationBalanceUpdate && <div className="home2-generation-update-summary"><span><small>Previous</small><strong>{generationBalanceUpdate.previous}</strong></span><span><small>Available now</small><strong><Sparkles size={18} strokeWidth={1.5} />{generationBalanceUpdate.current}</strong></span></div>}
+    <Popup open={generationBalanceUpdate !== null} title="Generation balance updated" titleId="tryon-generation-balance-title" eyebrow="Generation updated" icon={<GenerationIcon size={28} />} description="Your available generation balance has changed." onClose={() => setGenerationBalanceUpdate(null)} className="home2-generation-popup">
+      {generationBalanceUpdate && <div className="home2-generation-update-summary"><span><small>Previous</small><strong>{generationBalanceUpdate.previous}</strong></span><span><small>Available now</small><strong><GenerationIcon size={18} />{generationBalanceUpdate.current}</strong></span></div>}
     </Popup>
     {isFullPreviewOpen && resultOutput?.url && <div className="tryon-full-preview" role="dialog" aria-modal="true" aria-label="Full generated image preview"><button type="button" className="tryon-full-preview-backdrop" onClick={() => setIsFullPreviewOpen(false)} aria-label="Close full image preview" /><div className="tryon-full-preview-content"><button type="button" className="tryon-full-preview-close" onClick={() => setIsFullPreviewOpen(false)} aria-label="Close full image preview"><X size={20} strokeWidth={1.75} /></button><img src={resultOutput.url} alt="Generated result full preview" /></div></div>}
   </section>

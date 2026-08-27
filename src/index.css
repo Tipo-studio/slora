@@ -103,7 +103,7 @@ button, input, textarea { font: inherit; }
 .button-secondary > img[src="/images/hero-button-arrow.svg"] { width: 44px; height: 38px; flex: 0 0 auto; }
 .button-primary > img.hero-button-arrow-light { filter: invert(1); }
 .home2-header {
-  min-height: 4.5rem;
+  min-height: 72px;
   background: transparent;
   border-bottom: 0;
   backdrop-filter: none;
@@ -113,12 +113,28 @@ button, input, textarea { font: inherit; }
 .home2-join-beta-button:hover, .home2-join-beta-button.is-current { color: #c2410c; }
 .home2-join-beta-button:hover { opacity: .72; }
 .home2-join-beta-button svg { flex: 0 0 20px; }
-.home2-account-menu { position: relative; text-transform: none; letter-spacing: normal; }
-.home2-avatar-button, .home2-account-avatar { display: grid; width: 56px; height: 56px; place-items: center; overflow: hidden; border: 1px solid rgba(34, 211, 238, .45); border-radius: 50%; background: #0f172a; color: var(--color-ink); font: 500 18px/1 var(--font-body); box-shadow: 0 0 0 3px rgba(129, 140, 248, .08), 0 6px 18px rgba(15, 23, 42, .16); }
-.home2-avatar-button { padding: 0; cursor: pointer; box-shadow: 0 3px 3px rgba(2, 8, 13, .08); transition: transform .2s ease, border-color .2s ease; }
-.home2-avatar-button:hover, .home2-avatar-button[aria-expanded="true"] { border-color: var(--color-ink); transform: translateY(-1px); }
-.home2-avatar-button img, .home2-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.home2-account-dropdown { position: absolute; top: calc(100% + 8px); right: 0; z-index: 50; width: 236px; overflow: hidden; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-page); box-shadow: 0 2px 5px rgba(0, 0, 0, .04), 0 10px 10px rgba(0, 0, 0, .04), 0 22px 13px rgba(0, 0, 0, .02), 0 39px 16px rgba(0, 0, 0, .01), inset 0 -1px 1.3px rgba(0, 0, 0, .2); }
+.home2-account-menu { position: relative; display: inline-flex; align-items: center; gap: 10px; text-transform: none; letter-spacing: normal; }
+.home2-account-summary-header { margin: 0; padding: 6px 8px; border: 0; background: transparent; color: var(--color-ink); text-align: left; cursor: pointer; transition: opacity .2s ease; }
+.home2-account-summary-header:hover { opacity: .7; }
+.home2-account-summary-header[aria-expanded="true"] { opacity: .7; }
+.home2-account-summary-header .home2-account-avatar { width: 32px; height: 32px; flex-basis: 32px; border: 0; background: transparent; }
+.home2-account-summary-header { display: flex; align-items: center; gap: 16px; padding: 8px; }
+.home2-account-summary-header .home2-account-avatar { width: 48px; height: 48px; flex-basis: 48px; }
+.home2-generation-balance { display: flex; align-items: center; gap: 8px; padding: 0 8px 8px 0; color: var(--color-ink); font: 400 32px/48px var(--font-display); letter-spacing: .32px; }
+.home2-generation-balance svg { width: 24px; height: 24px; }
+.home2-account-upgrade { padding: 0; border: 0; background: transparent; color: #c2410c; font-size: 10px; cursor: pointer; }
+@media (max-width: 760px) { .home2-account-summary-header { display: none; } }
+.home2-account-avatar { display: grid; width: 56px; height: 56px; place-items: center; overflow: hidden; border: 0; border-radius: 50%; background: transparent; color: var(--color-ink); font: 500 18px/1 var(--font-body); }
+.home2-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.home2-account-dropdown { position: absolute; top: calc(100% + 8px); right: 0; z-index: 50; width: 236px; overflow: hidden; border: 1px solid #cbd5e1; border-radius: 16px; background: #f8fafc; box-shadow: 0 2px 5px rgba(0, 0, 0, .04), 0 10px 10px rgba(0, 0, 0, .04), 0 22px 13px rgba(0, 0, 0, .02), 0 39px 16px rgba(0, 0, 0, .01), inset 0 -1px 1.3px rgba(0, 0, 0, .2); padding: 8px 0; }
+.home2-account-dropdown > .home2-account-item,
+.home2-account-dropdown > .home2-promo-trigger { width: 220px; min-height: 40px; box-sizing: border-box; margin: 0 8px; padding: 8px; border-radius: 8px; gap: 8px; font: 400 14px/24px var(--font-body); }
+.home2-account-dropdown > .home2-account-item:first-child { background: #f1f5f9; }
+.home2-account-dropdown .home2-plan-item { background: #f1f5f9; }
+.home2-plan-item .home2-account-upgrade { width: auto; min-height: 20px; margin: 0; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; background: #e2e8f0; color: #c2410c; font: 400 10px/14px var(--font-body); }
+.home2-account-dropdown > .home2-account-item:hover,
+.home2-account-dropdown > .home2-promo-trigger:hover { background: #f1f5f9; }
+.home2-account-dropdown .home2-account-divider { height: 1px; margin: 8px 0; background: #f1f5f9; }
 .home2-account-summary { display: flex; gap: 8px; margin: 8px; padding: 8px; border-radius: 8px; background: var(--color-surface); }
 .home2-account-avatar { width: 32px; height: 32px; flex: 0 0 32px; font-size: 12px; box-shadow: none; }
 .home2-account-details { min-width: 0; flex: 1; color: var(--color-ink); font-size: 14px; line-height: 24px; }
@@ -223,6 +239,38 @@ button, input, textarea { font: inherit; }
 .home2-profile { min-width: 2.5rem; min-height: 2.5rem; }
 
 .function-page-header { position: sticky; top: 0; z-index: 40; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 44px; padding: var(--header-pt) var(--pad-x) 12px; background: rgba(255, 255, 255, .96); box-shadow: 0 1px 0 rgba(148, 163, 184, .18); backdrop-filter: blur(10px); }
+.function-background {
+  position: relative;
+  isolation: isolate;
+  background: #fdfafa;
+}
+.function-background::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/grid.svg') center top / cover no-repeat;
+  content: '';
+  pointer-events: none;
+}
+.join-beta-page,
+.paywall-page,
+.account-page,
+.library-page {
+  position: relative;
+  isolation: isolate;
+  background: #fdfafa;
+}
+.join-beta-page::before,
+.paywall-page::before,
+.account-page::before,
+.library-page::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('/grid.svg') center top / cover no-repeat;
+  content: '';
+  pointer-events: none;
+}
 .function-page-logo { justify-self: start; padding: 0; border: 0; background: transparent; cursor: pointer; transition: opacity .2s ease; }
 .function-page-logo:hover { opacity: .7; }
 .function-page-logo img { display: block; width: 169px; height: 35px; object-fit: contain; }
@@ -487,7 +535,16 @@ button, input, textarea { font: inherit; }
   height: 100vh;
   z-index: 20;
   isolation: isolate;
-  background: transparent;
+  background: #fdfafa;
+  color: #080d14;
+}
+.core-functions-screen::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('/grid.svg') center top / cover no-repeat;
+  content: '';
+  pointer-events: none;
 }
 .core-functions-content {
   position: relative;
