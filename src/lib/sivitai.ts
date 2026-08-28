@@ -216,7 +216,7 @@ export async function uploadSourceImage(dataUrl: string, name: string) {
   const response = await request<ImageUploadResponse>('/generations/source-images', {
     method: 'POST',
     body: JSON.stringify({ dataUrl, name }),
-  }, 'optional')
+  }, 'required')
   return getImageReference(response)
 }
 
