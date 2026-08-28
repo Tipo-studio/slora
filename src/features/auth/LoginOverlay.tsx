@@ -19,8 +19,27 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [isConfirmationPending, setIsConfirmationPending] = useState(false)
+  const [resendAvailableAt, setResendAvailableAt] = useState(0)
 
   const emailRedirectTo = `${window.location.origin}/signup`
+  const resendCooldownMs = 60_000
+  const canResendConfirmation = Date.now() >= resendAvailableAt
+
+  const clearAuthCallbackUrl = () => {
+    window.history.replaceState({}, '', '/signup')
+    window.location.hash = ''
+  }
+
+  useEffect(() => {
+    if (!resendAvailableAt) return
+    const timer = window.setInterval(() => {
+      if (Date.now() >= resendAvailableAt) {
+        setResendAvailableAt(0)
+        window.clearInterval(timer)
+      }
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [resendAvailableAt])
 
   useEffect(() => {
     emailInputRef.current?.focus()
@@ -32,8 +51,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
       setMode('sign-in')
       setIsConfirmationPending(false)
       setMessage('Email confirmed successfully. You can now sign in.')
-      window.history.replaceState({}, '', '/signup')
-      window.location.hash = ''
+      clearAuthCallbackUrl()
     }
   }, [])
 
@@ -51,11 +69,18 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
 
   const resendConfirmationEmail = async () => {
     resetFeedback()
+    if (!canResendConfirmation) {
+      setError('Please wait before requesting another confirmation email.')
+      return
+    }
     setIsSubmitting(true)
     try {
-      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email })
+      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo } })
       if (resendError) setError(resendError.message)
-      else setMessage('Confirmation email sent. Please check your inbox and spam folder.')
+      else {
+        setResendAvailableAt(Date.now() + resendCooldownMs)
+        setMessage('Confirmation email sent. Please check your inbox and spam folder.')
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to resend confirmation email.')
     } finally {
@@ -112,8 +137,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
         const { error: updateError } = await supabase.auth.updateUser({ password })
         if (updateError) setError(updateError.message)
         else {
-          window.history.replaceState({}, '', window.location.pathname)
-          window.location.hash = ''
+          clearAuthCallbackUrl()
           setMessage('Your password has been updated. You can now sign in.')
           setPassword('')
           setMode('sign-in')
@@ -175,7 +199,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
           <p className="login-status login-status-success" role="status">{message}</p>
           <p className="login-status">Open the link in your email to confirm your account. After confirmation, return here and sign in.</p>
           <button type="button" className="login-submit button-primary" onClick={() => switchMode('sign-in')} disabled={isSubmitting}>BACK TO SIGN IN</button>
-          <button type="button" className="login-back-to-signin" onClick={resendConfirmationEmail} disabled={isSubmitting}>{isSubmitting ? 'SENDING…' : 'RESEND CONFIRMATION EMAIL'}</button>
+          <button type="button" className="login-back-to-signin" onClick={resendConfirmationEmail} disabled={isSubmitting || !canResendConfirmation}>{isSubmitting ? 'SENDING…' : 'RESEND CONFIRMATION EMAIL'}</button>
           {error && <p className="login-status login-status-error" role="alert">{error}</p>}
         </div> : <form className="login-form" onSubmit={submitEmailPassword}>
           {(mode === 'sign-in' || mode === 'sign-up') && <>
