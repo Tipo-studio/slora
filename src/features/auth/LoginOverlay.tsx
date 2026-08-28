@@ -20,8 +20,21 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
   const [error, setError] = useState('')
   const [isConfirmationPending, setIsConfirmationPending] = useState(false)
 
+  const emailRedirectTo = `${window.location.origin}/signup`
+
   useEffect(() => {
     emailInputRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    if (hashParams.get('type') === 'signup' || hashParams.has('access_token')) {
+      setMode('sign-in')
+      setIsConfirmationPending(false)
+      setMessage('Email confirmed successfully. You can now sign in.')
+      window.history.replaceState({}, '', '/signup')
+      window.location.hash = ''
+    }
   }, [])
 
   const resetFeedback = () => {
@@ -82,7 +95,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
     try {
       if (mode === 'forgot-password') {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}${window.location.pathname}`,
+          redirectTo: emailRedirectTo,
         })
         if (resetError) setError(resetError.message)
         else setMessage('If an account exists for this email, we sent a password reset link.')
@@ -125,7 +138,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
+          options: { emailRedirectTo: emailRedirectTo },
         })
 
         if (signUpError) {
