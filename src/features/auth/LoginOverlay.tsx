@@ -143,11 +143,15 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
 
         if (signUpError) {
           setError(signUpError.message)
-        } else if (data.session && data.user) {
+        } else if (data.user && data.user.email_confirmed_at) {
+          // Only authenticated users with a confirmed email may enter the app.
           onAuthenticated(data.user)
         } else {
+          // Supabase creates the pending auth record before email confirmation.
+          // Do not treat the returned user/session as a completed signup.
+          if (data.session) await supabase.auth.signOut()
           setIsConfirmationPending(true)
-          setMessage('Account created. We sent a confirmation link to your email.')
+          setMessage('Please confirm your email before your account is activated.')
         }
       }
     } catch (requestError) {
