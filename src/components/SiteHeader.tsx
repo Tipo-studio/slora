@@ -106,18 +106,19 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
             </button>
             {isAccountMenuOpen && <div className="home2-account-dropdown" role="menu" aria-label="Account menu">
               <div className="home2-account-item home2-plan-item">
-                <span><PlanIcon />Free plan</span>
+                <PlanIcon />
+                <span className="home2-plan-info"><strong>{user.email}</strong><small>Free plan</small></span>
                 <button type="button" className="home2-account-upgrade" onClick={() => onOpenPaywall('studio')}>Upgrade</button>
               </div>
               <button type="button" className="home2-account-item" role="menuitem" onClick={() => onOpenFunction('try-on')}><span><GenerationIcon />Generation</span></button>
-              <PromoCodeRedeemer onRedeemed={({ remaining }) => setFreeGenerationsRemaining(remaining)} />
+              <PromoCodeRedeemer onRedeemed={({ remaining }) => setFreeGenerationsRemaining(remaining)} onTryNow={() => onOpenFunction('try-on')} />
               <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenLibrary}><span><Images size={16} strokeWidth={1.5} />My library</span></button>
               <button type="button" className="home2-account-item" role="menuitem" onClick={onOpenAccount}><span><CircleUserRound size={16} strokeWidth={1.5} />Referral</span></button>
               <div className="home2-account-divider" />
               <button type="button" className="home2-account-item" role="menuitem" onClick={() => void onSignOut()}><span><LogOut size={16} strokeWidth={1.5} />Sign out</span></button>
             </div>}
           </div>
-        ) : <><button type="button" onClick={() => onOpenFunction('try-on')} className="transition-opacity hover:opacity-50">TRY FREE</button><button type="button" onClick={() => setIsLoginOpen(true)} aria-label="Sign in" title="Sign in" className="home2-profile grid place-items-center rounded-full border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white"><UserRound size="var(--icon)" strokeWidth={1.5} /></button></>}
+        ) : <><button type="button" onClick={() => onOpenFunction('try-on')} className="transition-opacity hover:opacity-50">TRY FREE</button><button type="button" onClick={() => setIsLoginOpen(true)} aria-label="Sign in" title="Sign in" className="home2-profile grid place-items-center border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white" style={{ borderRadius: 'var(--radius-control)' }}><UserRound size="var(--icon)" strokeWidth={1.5} /></button></>}
       </nav>
     </header>
     {isLoginOpen && <LoginOverlay onClose={() => setIsLoginOpen(false)} onAuthenticated={handleAuthenticated} />}

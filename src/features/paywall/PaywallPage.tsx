@@ -21,7 +21,7 @@ function PaywallPage({ onBack, user, onRequestLogin, ...headerProps }: PaywallPa
     <section className="paywall-plans" aria-label="Promotion code">
       <article className="paywall-plan paywall-plan-creator is-selected">
         <div className="paywall-plan-main"><div className="paywall-plan-heading"><h2>Promotion code</h2><div className="paywall-price"><strong>+20</strong><span>/ generations</span></div><div className="paywall-credit">Enter your code below to claim your free generations.</div></div></div>
-        {!user || user.is_anonymous ? <button type="button" className="paywall-continue" onClick={onRequestLogin}>Sign in to receive code</button> : <PromoCodeRedeemer onRedeemed={({ granted, remaining }) => { setGenerationBalance(remaining); setMessage(`${granted} generations added to your account. You now have ${remaining} generations remaining.`) }} />}
+        {!user || user.is_anonymous ? <button type="button" className="paywall-continue" onClick={onRequestLogin}>Sign in to receive code</button> : <PromoCodeRedeemer onRedeemed={({ granted, remaining }) => { setGenerationBalance(remaining); setMessage(`${granted} generations added to your account. You now have ${remaining} generations remaining.`) }} onTryNow={() => headerProps.onOpenFunction('try-on')} />}
       </article>
     </section>
     {message && <p className="paywall-purchase-message" role="status">{message}</p>}

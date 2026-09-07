@@ -10,6 +10,12 @@ export function getPendingReferralCode() {
   return window.localStorage.getItem(REFERRAL_STORAGE_KEY)
 }
 
+export function setPendingReferralCode(code: string) {
+  const normalizedCode = code.trim().toUpperCase()
+  if (normalizedCode) window.localStorage.setItem(REFERRAL_STORAGE_KEY, normalizedCode)
+  return normalizedCode
+}
+
 export function clearPendingReferralCode() {
   window.localStorage.removeItem(REFERRAL_STORAGE_KEY)
 }

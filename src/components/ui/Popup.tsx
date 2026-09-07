@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 
 type PopupProps = {
@@ -16,11 +16,25 @@ type PopupProps = {
 }
 
 function Popup({ open, title, titleId, onClose, children, eyebrow, description, icon, className = '', closeDisabled = false }: PopupProps) {
+  useEffect(() => {
+    if (!open) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !closeDisabled) onClose()
+    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [closeDisabled, onClose, open])
+
   if (!open) return null
   const headingId = titleId ?? 'app-popup-title'
 
   return createPortal(
-    <div className={`app-popup ${className}`.trim()} role="dialog" aria-modal="true" aria-labelledby={headingId}>
+    <div className={`app-popup app-popup-template ${className}`.trim()} role="dialog" aria-modal="true" aria-labelledby={headingId}>
       <button type="button" className="app-popup-backdrop" onClick={onClose} aria-label={`Close ${title}`} />
       <section className="app-popup-panel" onMouseDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
         <button type="button" className="app-popup-close" onClick={onClose} aria-label={`Close ${title}`} disabled={closeDisabled}>

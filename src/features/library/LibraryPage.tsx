@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Download, ImageIcon, Pencil, RefreshCw, Shirt, Trash2, X } from 'lucide-react'
+import { Download, ImageIcon, Pencil, RefreshCw, Shirt, Trash2 } from 'lucide-react'
 import { getMyLibrary, isSafeRemoteUrl, type LibraryImage } from '../../lib/sivitai'
 import { getHiddenLibraryImageIds, hideLibraryImage } from '../../lib/imageLibrary'
 import { SiteHeader, type SiteHeaderProps } from '../../components/SiteHeader'
+import { Popup } from '../../components/ui/Popup'
 
 type LibraryPageProps = SiteHeaderProps & {
   onBack: () => void
@@ -123,11 +124,10 @@ function LibraryPage({ user, onBack, onOpenTool, ...headerProps }: LibraryPagePr
       <p>{user && !user.is_anonymous ? 'Your generated images will appear here after you create them.' : 'Your saved creations are available after you sign in.'}</p>
       <button type="button" className="button-primary" onClick={onBack}>{user && !user.is_anonymous ? 'CREATE AN IMAGE' : 'BACK TO HOME'}</button>
     </section>}
-    {previewImage && <div className="library-full-preview" role="dialog" aria-modal="true" aria-label="Full image preview">
-      <button type="button" className="library-full-preview-backdrop" onClick={() => setPreviewImage(null)} aria-label="Close full image preview" />
+    <Popup open={previewImage !== null} title="Full image preview" onClose={() => setPreviewImage(null)} className="app-popup-template library-full-preview-popup">
+      {previewImage && <>
       <div className="library-full-preview-content">
         <img src={previewImage.url} alt="Generated creation" />
-        <button type="button" className="library-full-preview-close" onClick={() => setPreviewImage(null)} aria-label="Close full image preview"><X size={20} /></button>
         <div className="library-full-preview-actions">
           <button type="button" onClick={() => openTool('try-on', previewImage.url)}><Shirt size={17} strokeWidth={1.5} />Try on</button>
           <button type="button" onClick={() => openTool('magic-editor', previewImage.url)}><Pencil size={16} strokeWidth={1.5} />Edit</button>
@@ -135,7 +135,8 @@ function LibraryPage({ user, onBack, onOpenTool, ...headerProps }: LibraryPagePr
           <button type="button" className="is-delete" onClick={() => void deleteImage(previewImage)} disabled={deletingImageId === previewImage.id}><Trash2 size={16} strokeWidth={1.5} />{deletingImageId === previewImage.id ? 'Removing…' : 'Remove'}</button>
         </div>
       </div>
-    </div>}
+      </>}
+    </Popup>
   </main>
 }
 

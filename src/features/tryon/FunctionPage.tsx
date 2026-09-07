@@ -11,7 +11,7 @@ function FunctionPage({ onBack, onOpenJoinBeta, onOpenLibrary, onOpenAccount, on
   const requestedTool = searchParams.get('tool')
   const requestedImageUrl = searchParams.get('image')
 
-  return <div className="function-page min-h-screen overflow-x-clip bg-white text-black">
+  return <div className="function-page function-background min-h-screen overflow-x-clip text-black">
     <SiteHeader onOpenJoinBeta={onOpenJoinBeta} onOpenLibrary={onOpenLibrary} onOpenAccount={onOpenAccount} onOpenFunction={onOpenFunction} onOpenPaywall={onOpenPaywall} user={user} onSignOut={onSignOut} onAuthenticated={onAuthenticated} onLogoClick={onBack} />
     <TryOnSection sectionRef={tryOnSectionRef} user={user} onRequestLogin={() => setIsLoginOpen(true)} onOpenPaywall={onOpenPaywall} initialTool={requestedTool === 'try-on' || requestedTool === 'magic-editor' ? requestedTool : undefined} initialImageUrl={requestedImageUrl} />
     {isLoginOpen && <LoginOverlay onClose={() => setIsLoginOpen(false)} onAuthenticated={(authenticatedUser) => { onAuthenticated(authenticatedUser); setIsLoginOpen(false) }} />}

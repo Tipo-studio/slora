@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { isAuthProviderEnabled, supabase } from '../../lib/supabase'
+import { Popup } from '../../components/ui/Popup'
 
 function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { onClose: () => void; onAuthenticated: (user: User) => void; initialMode?: 'sign-in' | 'sign-up' }) {
   const emailId = useId()
@@ -185,11 +186,9 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
     }
   }
 
-  return <div className="login-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
-    <div className="login-backdrop" onClick={onClose} />
+  return <Popup open title="Sign in" titleId="login-title" onClose={onClose} className="app-popup-template login-popup">
     <div className="login-panel">
       <img className="login-decoration" src="/images/login/background.svg" alt="" aria-hidden="true" />
-      <button type="button" className="login-close" onClick={onClose} aria-label="Close login dialog"><img src="/images/login/close.svg" alt="" aria-hidden="true" /></button>
       <div className="login-content">
         <div className="login-intro">
           <img className="login-logo" src="/images/full-logo.svg" alt="Slora" />
@@ -227,7 +226,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
         <p className="login-terms">By proceeding with the login process, you agree to our <a href="https://www.weshop.ai/policy" target="_blank" rel="noreferrer">User Service Agreement</a> and <a href="https://www.weshop.ai/privacy" target="_blank" rel="noreferrer">Privacy Policy.</a></p>
       </div>
     </div>
-  </div>
+  </Popup>
 }
 
 export { LoginOverlay }
