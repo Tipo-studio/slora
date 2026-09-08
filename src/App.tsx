@@ -6,6 +6,7 @@ import { JoinBetaPage } from './features/join-beta/JoinBetaPage'
 import { LibraryPage } from './features/library/LibraryPage'
 import { PaywallPage } from './features/paywall/PaywallPage'
 import { LoginOverlay } from './features/auth/LoginOverlay'
+import { Popup } from './components/ui/Popup'
 import { clearTryOnSession, getPendingGuestGeneration } from './features/tryon/tryonSession'
 import { getCurrentUser, supabase } from './lib/supabase'
 import { captureReferralCodeFromUrl } from './lib/referral'
@@ -21,6 +22,7 @@ function App() {
   const [path, setPath] = useState(() => window.location.pathname)
   const [user, setUser] = useState<User | null>(null)
   const [isPaywallLoginOpen, setIsPaywallLoginOpen] = useState(false)
+  const [isSignupSuccessOpen, setIsSignupSuccessOpen] = useState(false)
   const userIdRef = useRef<string | null>(null)
 
   const resetForUserTransition = (nextUser: User | null) => {
@@ -42,15 +44,40 @@ function App() {
 
   useEffect(() => {
     captureReferralCodeFromUrl()
-    void getCurrentUser().then(async (currentUser) => {
-      if (currentUser && !currentUser.is_anonymous) await completePendingReferral(currentUser.id).catch(() => undefined)
-      userIdRef.current = currentUser?.id ?? null
-      setUser(currentUser)
-    }).catch(() => {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const queryParams = new URLSearchParams(window.location.search)
+    const isEmailConfirmationCallback = queryParams.has('code')
+      || hashParams.get('type') === 'signup'
+      || hashParams.get('type') === 'email'
+      || hashParams.has('access_token')
+
+    // The confirmation overlay exchanges/signs out callback sessions. Avoid
+    // racing it by loading the temporary session here as an app user.
+    if (isEmailConfirmationCallback) {
       userIdRef.current = null
       setUser(null)
-    })
+    } else {
+      void getCurrentUser().then(async (currentUser) => {
+        if (currentUser && !currentUser.is_anonymous) await completePendingReferral(currentUser.id).catch(() => undefined)
+        userIdRef.current = currentUser?.id ?? null
+        setUser(currentUser)
+      }).catch(() => {
+        userIdRef.current = null
+        setUser(null)
+      })
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const queryParams = new URLSearchParams(window.location.search)
+      const isEmailConfirmationCallback = queryParams.has('code')
+        || hashParams.get('type') === 'signup'
+        || hashParams.get('type') === 'email'
+        || hashParams.has('access_token')
+
+      // LoginOverlay owns the confirmation callback. Do not let the temporary
+      // callback session redirect the user into the app before it signs out.
+      if (isEmailConfirmationCallback) return
+
       if (event === 'INITIAL_SESSION') {
         if (session?.user && !session.user.is_anonymous) void completePendingReferral(session.user.id).catch(() => undefined)
         userIdRef.current = session?.user?.id ?? null
@@ -85,7 +112,7 @@ function App() {
   const headerProps = { onOpenJoinBeta: openJoinBeta, onOpenLibrary: () => navigate('/library'), onOpenAccount: openAccount, onOpenFunction: openFunction, onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio', returnToResult?: boolean) => navigate(`/paywall?plan=${plan}${returnToResult ? '&return=tryon-result' : ''}`), onSignOut: signOut, onAuthenticated: resetForUserTransition }
 
   if (path === '/join-beta') return <><JoinBetaPage {...headerProps} onBack={closeJoinBeta} user={user} onRequestLogin={() => setIsPaywallLoginOpen(true)} />{isPaywallLoginOpen && <LoginOverlay onClose={() => setIsPaywallLoginOpen(false)} onAuthenticated={resetForUserTransition} />}</>
-  if (path === '/signup') return <><HomePage onOpenJoinBeta={openJoinBeta} onOpenLibrary={() => navigate('/library')} onOpenAccount={openAccount} onOpenFunction={(tool) => openFunction(tool)} onOpenPaywall={(plan: 'one-time' | 'creator' | 'studio', returnToResult = false) => navigate(`/paywall?plan=${plan}${returnToResult ? '&return=tryon-result' : ''}`)} user={user} onSignOut={signOut} onAuthenticated={resetForUserTransition} /><LoginOverlay onClose={() => navigate('/')} onAuthenticated={resetForUserTransition} initialMode="sign-up" /></>
+  if (path === '/signup') return <><HomePage onOpenJoinBeta={openJoinBeta} onOpenLibrary={() => navigate('/library')} onOpenAccount={openAccount} onOpenFunction={(tool) => openFunction(tool)} onOpenPaywall={(plan: 'one-time' | 'creator' | 'studio', returnToResult = false) => navigate(`/paywall?plan=${plan}${returnToResult ? '&return=tryon-result' : ''}`)} user={user} onSignOut={signOut} onAuthenticated={resetForUserTransition} /><LoginOverlay onClose={() => navigate('/')} onAuthenticated={resetForUserTransition} onSignupCompleted={() => setIsSignupSuccessOpen(true)} initialMode="sign-up" /><Popup open={isSignupSuccessOpen} title="Signup successful" description="Your account is ready to use." onClose={() => setIsSignupSuccessOpen(false)} className="app-popup-template signup-success-popup"><div className="signup-success-content"><strong>2 free generations are ready to start.</strong><p>Use your free generations to create your first images.</p><button type="button" className="button-primary" onClick={() => setIsSignupSuccessOpen(false)}>START CREATING</button></div></Popup></>
   if (path === '/account') return <AccountPage user={user} onBack={() => navigate('/')} onSignOut={signOut} onOpenJoinBeta={openJoinBeta} onOpenLibrary={() => navigate('/library')} onOpenFunction={(tool) => openFunction(tool)} onOpenPaywall={(plan, returnToResult = false) => navigate(`/paywall?plan=${plan}${returnToResult ? '&return=tryon-result' : ''}`)} onOpenAccount={openAccount} onAuthenticated={resetForUserTransition} />
   if (path === '/library') return <LibraryPage {...headerProps} user={user} onBack={() => navigate('/')} onOpenTool={(tool, imageUrl) => navigate(`/function?tool=${tool}&image=${encodeURIComponent(imageUrl)}`)} />
 

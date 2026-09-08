@@ -4,9 +4,17 @@ import type { User } from '@supabase/supabase-js'
 import { isAuthProviderEnabled, supabase } from '../../lib/supabase'
 import { Popup } from '../../components/ui/Popup'
 
-function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { onClose: () => void; onAuthenticated: (user: User) => void; initialMode?: 'sign-in' | 'sign-up' }) {
+type LoginOverlayProps = {
+  onClose: () => void
+  onAuthenticated: (user: User) => void
+  onSignupCompleted?: () => void
+  initialMode?: 'sign-in' | 'sign-up'
+}
+
+function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode = 'sign-in' }: LoginOverlayProps) {
   const emailId = useId()
   const passwordId = useId()
+  const confirmPasswordId = useId()
   const emailInputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password'>(() => {
     if (initialMode === 'sign-up') return 'sign-up'
@@ -16,10 +24,12 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
   })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [isConfirmationPending, setIsConfirmationPending] = useState(false)
+  const [isHandlingAuthCallback, setIsHandlingAuthCallback] = useState(false)
   const [resendAvailableAt, setResendAvailableAt] = useState(0)
 
   const emailRedirectTo = `${window.location.origin}/signup`
@@ -47,13 +57,54 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
   }, [])
 
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
-    if (hashParams.get('type') === 'signup' || hashParams.has('access_token')) {
-      setMode('sign-in')
-      setIsConfirmationPending(false)
-      setMessage('Email confirmed successfully. You can now sign in.')
-      clearAuthCallbackUrl()
+    let isMounted = true
+
+    const handleAuthCallback = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const queryParams = new URLSearchParams(window.location.search)
+      const authType = hashParams.get('type') ?? queryParams.get('type')
+      const hasAuthCallback = authType === 'signup' || authType === 'email' || hashParams.has('access_token') || queryParams.has('code')
+      if (!hasAuthCallback) return
+
+      setIsHandlingAuthCallback(true)
+      resetFeedback()
+      try {
+        // PKCE links return a code; the browser client exchanges it and then
+        // exposes the confirmed user through the current session.
+        if (queryParams.has('code')) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(queryParams.get('code')!)
+          if (exchangeError) throw exchangeError
+        }
+
+        const { data, error: sessionError } = await supabase.auth.getSession()
+        if (sessionError) throw sessionError
+        if (data.session?.user) {
+          const confirmedUser = data.session.user
+          setEmail(confirmedUser.email ?? '')
+          // Confirmation proves the email, but does not automatically sign the
+          // user into the app. The user must complete the normal sign-in step.
+          await supabase.auth.signOut()
+          setMode('sign-in')
+          setIsConfirmationPending(false)
+          setMessage('Email confirmed successfully. Your account is ready. Please sign in to continue.')
+          onSignupCompleted?.()
+        } else {
+          setMode('sign-in')
+          setMessage('Your confirmation link is invalid or has expired. Please request a new one.')
+        }
+      } catch (callbackError) {
+        setMode('sign-in')
+        setError(callbackError instanceof Error ? callbackError.message : 'Unable to confirm your email. Please request a new link.')
+      } finally {
+        if (isMounted) {
+          setIsHandlingAuthCallback(false)
+          clearAuthCallbackUrl()
+        }
+      }
     }
+
+    void handleAuthCallback()
+    return () => { isMounted = false }
   }, [])
 
   const resetFeedback = () => {
@@ -64,6 +115,7 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
   const switchMode = (nextMode: 'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password') => {
     setMode(nextMode)
     setPassword('')
+    setConfirmPassword('')
     setIsConfirmationPending(false)
     resetFeedback()
   }
@@ -155,11 +207,21 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
             setError(signInError.message)
           }
         } else if (data.user) {
-          onAuthenticated(data.user)
+          if (!data.user.email_confirmed_at) {
+            await supabase.auth.signOut()
+            setIsConfirmationPending(true)
+            setMessage('Please confirm your email before signing in.')
+          } else {
+            onAuthenticated(data.user)
+          }
         } else {
           setError('Sign-in succeeded but no user session was returned. Please try again.')
         }
       } else {
+        if (mode === 'sign-up' && password !== confirmPassword) {
+          setError('Passwords do not match.')
+          return
+        }
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -217,8 +279,12 @@ function LoginOverlay({ onClose, onAuthenticated, initialMode = 'sign-in' }: { o
             <label htmlFor={passwordId}>{mode === 'reset-password' ? 'New password' : 'Password'}</label>
             <input id={passwordId} className="login-field" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 6 characters" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} minLength={6} required disabled={isSubmitting} />
           </div>}
+          {mode === 'sign-up' && <div className="login-control">
+            <label htmlFor={confirmPasswordId}>Confirm password</label>
+            <input id={confirmPasswordId} className="login-field" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Re-enter your password" autoComplete="new-password" minLength={6} required disabled={isSubmitting} />
+          </div>}
           {mode === 'sign-in' && <button type="button" className="login-forgot-password" onClick={() => switchMode('forgot-password')} disabled={isSubmitting}>Forgot password?</button>}
-          <button type="submit" className="login-submit button-primary" disabled={isSubmitting}>{isSubmitting ? 'PLEASE WAIT…' : mode === 'forgot-password' ? 'SEND RESET LINK' : mode === 'reset-password' ? 'UPDATE PASSWORD' : mode === 'sign-in' ? 'SIGN IN' : 'CREATE ACCOUNT'}</button>
+          <button type="submit" className="login-submit button-primary" disabled={isSubmitting || isHandlingAuthCallback}>{isHandlingAuthCallback ? 'CONFIRMING EMAIL…' : isSubmitting ? 'PLEASE WAIT…' : mode === 'forgot-password' ? 'SEND RESET LINK' : mode === 'reset-password' ? 'UPDATE PASSWORD' : mode === 'sign-in' ? 'SIGN IN' : 'CREATE ACCOUNT'}</button>
           {(mode === 'forgot-password' || mode === 'reset-password') && <button type="button" className="login-back-to-signin" onClick={() => switchMode('sign-in')} disabled={isSubmitting}>Back to sign in</button>}
           {message && <p className="login-status login-status-success" role="status">{message}</p>}
           {error && <p className="login-status login-status-error" role="alert">{error}</p>}

@@ -86,7 +86,7 @@ async function toDataUrl(file: File) {
   })
 }
 
-function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initialTool, initialImageUrl }: { sectionRef: RefObject<HTMLElement | null>; user: User | null; onRequestLogin: () => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio', returnToResult?: boolean) => void; initialTool?: 'try-on' | 'magic-editor'; initialImageUrl?: string | null }) {
+function TryOnSection({ sectionRef, user, onRequestLogin, onOpenAccount, onOpenPaywall, initialTool, initialImageUrl }: { sectionRef: RefObject<HTMLElement | null>; user: User | null; onRequestLogin: () => void; onOpenAccount: () => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio', returnToResult?: boolean) => void; initialTool?: 'try-on' | 'magic-editor'; initialImageUrl?: string | null }) {
   const [savedSession] = useState(getSavedTryOnSession)
   const [activeTool, setActiveTool] = useState<TryOnTool>(() => initialTool ?? savedSession?.activeTool ?? 'try-on')
   const [toolDefinition, setToolDefinition] = useState<ToolDefinition | null>(null)
@@ -491,7 +491,7 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenPaywall, initial
       {toolUsesPrompt && <MagicPromptCard prompt={prompt} onPromptChange={setPrompt} canWriteCustomPrompt={canWriteCustomMagicPrompt} showSuggestions={activeTool === 'magic-editor'} />}
       <button type="button" className="tryon-cta button-primary" onClick={() => void generate()} disabled={isGenerating || uploadingFieldName !== null}><img src="/images/tryon/try-now-icon.svg" alt="" aria-hidden="true" />{isGenerating ? 'GENERATING…' : 'TRY NOW'}</button>
       <p className="tryon-free-count" aria-live="polite"><strong>{freeGenerationsRemaining}</strong> free generation{freeGenerationsRemaining === 1 ? '' : 's'} remaining</p>
-      {error && <p className="tryon-status tryon-status-error" role="alert">{error}</p>}
+      {error && <p className="tryon-status tryon-status-error" role="alert">{error}{isLimitedGeneration && <button type="button" className="tryon-invite-friend-button" onClick={onOpenAccount}>INVITE FRIEND TO GET FREE GENERATION</button>}</p>}
       {generation?.status === 'failed' && <div className="tryon-status tryon-status-error" role="alert"><p>{generation.errorMessage ?? 'Generation failed. Please try again.'}</p><button type="button" className="tryon-retry-button" onClick={retryGeneration} disabled={uploadingFieldName !== null}>TRY AGAIN</button></div>}
     </div></div>
     <div className="tryon-preview" aria-label="Try-on result preview"><div key={`${activeTool}-${generation?.generationId ?? 'default'}-${isGenerating ? 'loading' : resultOutput?.url ? 'result' : 'idle'}`} className={`tryon-phone-frame ${isGenerating ? 'is-loading' : ''} ${resultOutput?.url ? 'has-result' : ''} ${resultOutputs.length > 1 ? 'has-multiple-results' : ''} ${isLockedResult ? 'is-locked' : ''}`} aria-label={isGenerating ? 'Generating image' : undefined}>
