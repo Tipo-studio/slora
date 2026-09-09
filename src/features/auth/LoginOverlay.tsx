@@ -230,15 +230,14 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
 
         if (signUpError) {
           setError(signUpError.message)
-        } else if (data.user && data.user.email_confirmed_at) {
-          // Only authenticated users with a confirmed email may enter the app.
-          onAuthenticated(data.user)
         } else {
-          // Supabase creates the pending auth record before email confirmation.
-          // Do not treat the returned user/session as a completed signup.
+          // Never create an app session directly after signup. The user must
+          // confirm the email first, then return and sign in manually.
           if (data.session) await supabase.auth.signOut()
           setIsConfirmationPending(true)
-          setMessage('Please confirm your email before your account is activated.')
+          setPassword('')
+          setConfirmPassword('')
+          setMessage('Account created. Please check your email and click the confirmation link before signing in.')
         }
       }
     } catch (requestError) {
@@ -258,7 +257,7 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
         </div>
         {isConfirmationPending ? <div className="login-form">
           <p className="login-status login-status-success" role="status">{message}</p>
-          <p className="login-status">Open the link in your email to confirm your account. After confirmation, return here and sign in.</p>
+          <p className="login-status">We sent a confirmation link to <strong>{email}</strong>. Open it to activate your account, then return here and sign in manually.</p>
           <button type="button" className="login-submit button-primary" onClick={() => switchMode('sign-in')} disabled={isSubmitting}>BACK TO SIGN IN</button>
           <button type="button" className="login-back-to-signin" onClick={resendConfirmationEmail} disabled={isSubmitting || !canResendConfirmation}>{isSubmitting ? 'SENDING…' : 'RESEND CONFIRMATION EMAIL'}</button>
           {error && <p className="login-status login-status-error" role="alert">{error}</p>}
