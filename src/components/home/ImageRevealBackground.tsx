@@ -69,8 +69,8 @@ function ImageRevealBackground() {
 
   const common = { backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } as const
   return <div className="desktop-reveal fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
-    <div className="absolute inset-0" style={{ ...common, backgroundImage: `url("${BASE_IMAGE}")` }} />
-    <div ref={revealRef} className="image-reveal-layer absolute inset-0" style={{ ...common, backgroundImage: `url("${REVEAL_IMAGE}")` }} />
+    <div className="home2-background-base absolute inset-0" style={{ ...common, backgroundImage: `url("${BASE_IMAGE}")` }} />
+    <div ref={revealRef} className="home2-background-reveal image-reveal-layer absolute inset-0" style={{ ...common, backgroundImage: `url("${REVEAL_IMAGE}")` }} />
     <svg className="absolute inset-0 h-full w-full opacity-10" xmlns="http://www.w3.org/2000/svg"><defs><pattern ref={gridRef} id="reveal-grid-pattern" width="48" height="48" patternUnits="userSpaceOnUse"><path id="reveal-grid-path" d="M 48 0 L 0 0 0 48" fill="none" stroke="#64748b" strokeWidth="0.6" /></pattern></defs><rect width="100%" height="100%" fill="url(#reveal-grid-pattern)" /></svg>
   </div>
 }

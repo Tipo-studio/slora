@@ -118,7 +118,7 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
               <button type="button" className="home2-account-item" role="menuitem" onClick={() => void onSignOut()}><span><LogOut size={16} strokeWidth={1.5} />Sign out</span></button>
             </div>}
           </div>
-        ) : <><button type="button" onClick={() => onOpenFunction('try-on')} className="transition-opacity hover:opacity-50">TRY FREE</button><button type="button" onClick={() => setIsLoginOpen(true)} aria-label="Sign in" title="Sign in" className="home2-profile grid place-items-center border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white" style={{ borderRadius: 'var(--radius-control)' }}><UserRound size="var(--icon)" strokeWidth={1.5} /></button></>}
+        ) : <><button type="button" onClick={() => onOpenFunction('try-on')} className="transition-opacity hover:opacity-50">TRY FREE</button><button type="button" onClick={() => setIsLoginOpen(true)} aria-label="Sign in" title="Sign in" className="home2-profile grid place-items-center gap-2 border border-gray-400 p-2 transition-colors hover:border-black hover:bg-black hover:text-white" style={{ borderRadius: 'var(--radius-control)' }}><UserRound size="var(--icon)" strokeWidth={1.5} /><span className="home2-profile-label">SIGN IN</span></button></>}
       </nav>
     </header>
     {isLoginOpen && <LoginOverlay onClose={() => setIsLoginOpen(false)} onAuthenticated={handleAuthenticated} />}
