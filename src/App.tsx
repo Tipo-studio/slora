@@ -58,6 +58,12 @@ function App() {
       setUser(null)
     } else {
       void getCurrentUser().then(async (currentUser) => {
+        if (currentUser?.email && !currentUser.email_confirmed_at) {
+          userIdRef.current = null
+          setUser(null)
+          await supabase.auth.signOut()
+          return
+        }
         if (currentUser && !currentUser.is_anonymous) await completePendingReferral(currentUser.id).catch(() => undefined)
         userIdRef.current = currentUser?.id ?? null
         setUser(currentUser)
@@ -79,12 +85,30 @@ function App() {
       if (isEmailConfirmationCallback) return
 
       if (event === 'INITIAL_SESSION') {
-        if (session?.user && !session.user.is_anonymous) void completePendingReferral(session.user.id).catch(() => undefined)
-        userIdRef.current = session?.user?.id ?? null
-        setUser(session?.user ?? null)
+        const initialUser = session?.user ?? null
+        if (initialUser?.email && !initialUser.email_confirmed_at) {
+          // Supabase can briefly expose a signup session before confirmation.
+          // Never hydrate the app with that unconfirmed user.
+          userIdRef.current = null
+          setUser(null)
+          void supabase.auth.signOut()
+          return
+        }
+        if (initialUser && !initialUser.is_anonymous) void completePendingReferral(initialUser.id).catch(() => undefined)
+        userIdRef.current = initialUser?.id ?? null
+        setUser(initialUser)
         return
       }
-      resetForUserTransition(session?.user ?? null)
+
+      const nextUser = session?.user ?? null
+      if (nextUser?.email && !nextUser.email_confirmed_at) {
+        // Guard against SIGNED_IN emitted immediately after signup.
+        userIdRef.current = null
+        setUser(null)
+        void supabase.auth.signOut()
+        return
+      }
+      resetForUserTransition(nextUser)
     })
     return () => subscription.unsubscribe()
   }, [])
