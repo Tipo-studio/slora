@@ -46,10 +46,15 @@ function App() {
     captureReferralCodeFromUrl()
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const queryParams = new URLSearchParams(window.location.search)
-    const isSignupConfirmationCallback = (queryParams.has('code') && window.location.pathname === '/signup')
+    const hasSignupConfirmationCallback = queryParams.has('code')
       || hashParams.get('type') === 'signup'
       || hashParams.get('type') === 'email'
       || hashParams.has('access_token')
+    const isSignupConfirmationCallback = hasSignupConfirmationCallback
+    if (hasSignupConfirmationCallback && window.location.pathname !== '/signup') {
+      window.history.replaceState({}, '', `/signup${window.location.search}${window.location.hash}`)
+      setPath('/signup')
+    }
     if (isSignupConfirmationCallback) {
       // The signup overlay owns email confirmation callbacks.
       userIdRef.current = null
@@ -73,7 +78,7 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
       const queryParams = new URLSearchParams(window.location.search)
-      const isSignupConfirmationCallback = (queryParams.has('code') && window.location.pathname === '/signup')
+      const isSignupConfirmationCallback = queryParams.has('code')
         || hashParams.get('type') === 'signup'
         || hashParams.get('type') === 'email'
         || hashParams.has('access_token')
