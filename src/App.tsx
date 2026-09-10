@@ -46,14 +46,28 @@ function App() {
     captureReferralCodeFromUrl()
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const queryParams = new URLSearchParams(window.location.search)
-    const isEmailConfirmationCallback = queryParams.has('code')
+    const isSignupConfirmationCallback = (queryParams.has('code') && window.location.pathname === '/signup')
       || hashParams.get('type') === 'signup'
       || hashParams.get('type') === 'email'
       || hashParams.has('access_token')
+    const isOAuthCallbackOnAppRoute = queryParams.has('code') && window.location.pathname !== '/signup'
 
-    // The confirmation overlay exchanges/signs out callback sessions. Avoid
-    // racing it by loading the temporary session here as an app user.
-    if (isEmailConfirmationCallback) {
+    // Google OAuth can return to the home route, where LoginOverlay is not
+    // mounted. Exchange the PKCE code here so the callback works globally.
+    if (isOAuthCallbackOnAppRoute) {
+      void supabase.auth.exchangeCodeForSession(queryParams.get('code')!).then(({ error }) => {
+        if (error) throw error
+        window.history.replaceState({}, '', window.location.pathname)
+        return getCurrentUser()
+      }).then((currentUser) => {
+        userIdRef.current = currentUser?.id ?? null
+        setUser(currentUser)
+      }).catch(() => {
+        userIdRef.current = null
+        setUser(null)
+      })
+    } else if (isSignupConfirmationCallback) {
+      // The signup overlay owns email confirmation callbacks.
       userIdRef.current = null
       setUser(null)
     } else {
@@ -75,14 +89,14 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
       const queryParams = new URLSearchParams(window.location.search)
-      const isEmailConfirmationCallback = queryParams.has('code')
+      const isSignupConfirmationCallback = (queryParams.has('code') && window.location.pathname === '/signup')
         || hashParams.get('type') === 'signup'
         || hashParams.get('type') === 'email'
         || hashParams.has('access_token')
 
       // LoginOverlay owns the confirmation callback. Do not let the temporary
       // callback session redirect the user into the app before it signs out.
-      if (isEmailConfirmationCallback) return
+      if (isSignupConfirmationCallback) return
 
       if (event === 'INITIAL_SESSION') {
         const initialUser = session?.user ?? null
