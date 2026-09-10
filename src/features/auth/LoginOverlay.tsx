@@ -32,8 +32,11 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
   const [isHandlingAuthCallback, setIsHandlingAuthCallback] = useState(false)
   const [resendAvailableAt, setResendAvailableAt] = useState(0)
 
-  const emailRedirectTo = `${window.location.origin}/signup`
-  const googleRedirectTo = `${window.location.origin}/`
+  // Use the public site URL for auth callbacks in production. Falling back to
+  // window.location.origin keeps local development working as before.
+  const authSiteUrl = (import.meta.env.VITE_SITE_URL?.trim() || (import.meta.env.PROD ? 'https://slora.art' : window.location.origin)).replace(/\/$/, '')
+  const emailRedirectTo = `${authSiteUrl}/signup`
+  const googleRedirectTo = `${authSiteUrl}/`
   const resendCooldownMs = 60_000
   const canResendConfirmation = Date.now() >= resendAvailableAt
 
