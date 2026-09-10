@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { SiteHeader, type SiteHeaderProps } from '../../components/SiteHeader'
-import { ImageRevealBackground } from '../../components/home/ImageRevealBackground'
 import { PromoCodeRedeemer } from '../../components/home/PromoCodeRedeemer'
-import { CoreInteractiveGrid } from '../core/CoreInteractiveGrid'
 
 type PaywallPageProps = SiteHeaderProps & { onBack: () => void; initialPlan?: 'one-time' | 'creator' | 'studio'; onRequestLogin: () => void }
 
@@ -11,8 +9,6 @@ function PaywallPage({ onBack, user, onRequestLogin, ...headerProps }: PaywallPa
   const [generationBalance, setGenerationBalance] = useState<number | null>(null)
 
   return <main className="paywall-page">
-    <ImageRevealBackground />
-    <CoreInteractiveGrid />
     <SiteHeader {...headerProps} user={user} onLogoClick={onBack} />
     <section className="paywall-intro">
       <h1>Get 20 free<br />generations</h1>
@@ -26,6 +22,10 @@ function PaywallPage({ onBack, user, onRequestLogin, ...headerProps }: PaywallPa
     </section>
     {message && <p className="paywall-purchase-message" role="status">{message}</p>}
     {generationBalance !== null && <p className="paywall-purchase-message" role="status">Generation balance: {generationBalance}</p>}
+    <section className="paywall-telegram" aria-label="Join Telegram">
+      <p>Join our Telegram group for updates and community support.</p>
+      <a href="https://t.me/+C2KlUUf0MuljYWM1" target="_blank" rel="noreferrer">Join Telegram</a>
+    </section>
   </main>
 }
 

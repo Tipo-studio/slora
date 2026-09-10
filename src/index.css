@@ -337,7 +337,8 @@ button, input, textarea { font: inherit; }
   color: var(--color-ink);
 }
 .library-page { background: #faf6f1 url('/library-background.svg') center top / 100% auto repeat-y; }
-.paywall-page::before { content: ''; position: fixed; inset: 0; z-index: 0; background: rgba(248, 250, 252, .76); pointer-events: none; }
+.paywall-page { background: var(--color-page) url('/grid.svg') center top / cover no-repeat; }
+.paywall-page::before { display: none; }
 .paywall-header, .paywall-intro, .paywall-plans { position: relative; z-index: 2; }
 .paywall-header, .page-header-shell { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 .page-header-shell { background: rgba(255, 255, 255, .96); box-shadow: 0 1px 0 rgba(148, 163, 184, .18); backdrop-filter: blur(10px); }
@@ -353,7 +354,7 @@ button, input, textarea { font: inherit; }
 .paywall-billing-switch button { display: inline-flex; min-height: 40px; align-items: center; gap: 8px; padding: 8px 16px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--color-muted); font: 600 12px/1 var(--font-body); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: background-color .2s ease, color .2s ease; }
 .paywall-billing-switch button.is-active { background: var(--color-ink); color: #fff; }
 .paywall-billing-switch span { padding: 3px 5px; border: 1px solid currentColor; border-radius: var(--radius-control); font-size: 9px; letter-spacing: .08em; }
-.paywall-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 320px)); justify-content: center; gap: var(--btn-gap); margin: clamp(3rem, 9vh, 8rem) auto 0; }
+.paywall-plans { display: none; }
 .paywall-plan { --paywall-line: rgba(100, 116, 139, .18); --paywall-light: #94a3b8; --paywall-light-soft: rgba(148, 163, 184, .3); --paywall-light-angle: 0deg; position: relative; display: flex; min-height: 576px; box-sizing: border-box; flex-direction: column; overflow: hidden; padding: clamp(1rem, 1.5vw, 1.5rem); border: 1px solid var(--color-border); border-radius: var(--radius-control); background-color: rgba(248, 250, 252, .93); box-shadow: 0 3px 3px rgba(2, 8, 13, .08), inset 0 1px 0 rgba(255, 255, 255, .8); isolation: isolate; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
 .paywall-plan::before, .paywall-plan::after { position: absolute; content: ''; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
 .paywall-plan::before { inset: 0; z-index: 2; padding: 2px; border-radius: inherit; background: conic-gradient(from var(--paywall-light-angle), transparent 0deg 278deg, var(--paywall-light-soft) 306deg, var(--paywall-light) 324deg, rgba(255, 255, 255, .9) 330deg, var(--paywall-light) 336deg, var(--paywall-light-soft) 348deg, transparent 360deg); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
@@ -391,6 +392,10 @@ button, input, textarea { font: inherit; }
 .tryon-invite-friend-button:hover { background: var(--color-muted); border-color: var(--color-muted); }
 .paywall-continue:not(:disabled):hover { border-color: #374151; background: #374151; color: #fff; transform: translateY(-1px); }
 .paywall-purchase-message { position: relative; z-index: 2; width: fit-content; margin: var(--section-gap) auto 0; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-ink); font: 400 14px/20px var(--font-body); }
+.paywall-telegram { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 32px auto 0; text-align: center; }
+.paywall-telegram p { margin: 0; color: var(--color-muted); font: 300 14px/20px var(--font-body); }
+.paywall-telegram a { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: var(--btn-py) var(--btn-px); border: 1px solid var(--color-ink); border-radius: var(--radius-control); background: var(--color-ink); color: #fff; font: 600 var(--body)/1 var(--font-body); letter-spacing: .12em; text-decoration: none; text-transform: uppercase; transition: background-color .2s ease, border-color .2s ease, transform .2s ease; }
+.paywall-telegram a:hover { border-color: var(--color-muted); background: var(--color-muted); transform: translateY(-1px); }
 .paywall-confirm-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: rgba(8, 13, 20, .45); backdrop-filter: blur(5px); }
 .paywall-confirm-dialog { position: relative; width: min(100%, 420px); padding: clamp(24px, 4vw, 40px); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-page); box-shadow: 0 24px 70px rgba(8, 13, 20, .3); }
 .paywall-confirm-close { position: absolute; top: 12px; right: 12px; display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: transparent; color: var(--color-ink); cursor: pointer; }
