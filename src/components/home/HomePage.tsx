@@ -124,6 +124,10 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
             <button type="button" className="home2-account-summary home2-account-summary-header" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}>
+              <Corner position="tl" />
+              <Corner position="tr" />
+              <Corner position="bl" />
+              <Corner position="br" />
               <div className="home2-account-avatar" aria-hidden="true"><img src={getAvatarUrl(user)} alt="" /></div>
               <div className="home2-generation-balance" aria-label={`${freeGenerationsRemaining} generations remaining`}><GenerationIcon size={24} /><span>{freeGenerationsRemaining}</span></div>
             </button>

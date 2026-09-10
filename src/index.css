@@ -115,20 +115,22 @@ button, input, textarea { font: inherit; }
 .home2-join-beta-button:hover { opacity: .72; }
 .home2-join-beta-button svg { flex: 0 0 20px; }
 .home2-account-menu { position: relative; display: inline-flex; align-items: center; gap: 10px; text-transform: none; letter-spacing: normal; }
-.home2-account-summary-header { margin: 0; padding: 6px 8px; border: 0; background: transparent; color: var(--color-ink); text-align: left; cursor: pointer; transition: opacity .2s ease; }
-.home2-account-summary-header:hover { opacity: .7; }
-.home2-account-summary-header[aria-expanded="true"] { opacity: .7; }
+.home2-account-summary-header { position: relative; width: max-content; min-width: 0; margin: 0; padding: var(--feature-pad); border: 0; border-radius: 0; background: transparent; color: var(--color-ink); text-align: left; cursor: pointer; transition: background-color .22s ease, color .22s ease, opacity .2s ease; }
+.home2-account-summary-header:hover,
+.home2-account-summary-header:focus-visible { outline: none; opacity: 1; }
+.home2-account-summary-header[aria-expanded="true"] { color: #fff; opacity: 1; }
 .home2-account-summary-header .home2-account-avatar { width: 32px; height: 32px; flex-basis: 32px; border: 0; background: transparent; }
-.home2-account-summary-header { display: flex; align-items: center; gap: 16px; padding: 8px; }
-.home2-account-summary-header .home2-account-avatar { width: 48px; height: 48px; flex-basis: 48px; }
+.home2-account-summary-header { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.home2-account-summary-header .home2-account-avatar { width: 40px; height: 40px; max-width: 40px; max-height: 40px; flex-basis: 40px; }
 .home2-generation-balance { display: flex; align-items: center; gap: 8px; padding: 0 8px 8px 0; color: var(--color-ink); font: 400 32px/48px var(--font-display); letter-spacing: .32px; }
+.home2-account-summary-header[aria-expanded="true"] .home2-generation-balance { color: #fff; }
 .home2-generation-balance svg { width: 24px; height: 24px; }
 .home2-account-upgrade { padding: 0; border: 0; background: transparent; color: #c2410c; font-size: 10px; cursor: pointer; }
 @media (max-width: 760px) {
   .home2-account-summary-header { display: flex; }
   .home2-generation-balance { display: none; }
 }
-.home2-account-avatar { display: grid; width: 56px; height: 56px; place-items: center; overflow: hidden; border: 0; border-radius: 50%; background: transparent; color: var(--color-ink); font: 500 18px/1 var(--font-body); }
+.home2-account-avatar { display: grid; width: 40px; height: 40px; max-width: 40px; max-height: 40px; place-items: center; overflow: hidden; border: 0; border-radius: 50%; background: transparent; color: var(--color-ink); font: 500 18px/1 var(--font-body); }
 .home2-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .home2-account-dropdown { position: absolute; top: calc(100% + 8px); right: 0; z-index: 50; width: 236px; overflow: hidden; border: 1px solid #cbd5e1; border-radius: var(--radius-control); background: #f8fafc; box-shadow: 0 2px 5px rgba(0, 0, 0, .04), 0 10px 10px rgba(0, 0, 0, .04), 0 22px 13px rgba(0, 0, 0, .02), 0 39px 16px rgba(0, 0, 0, .01), inset 0 -1px 1.3px rgba(0, 0, 0, .2); padding: 8px 0; }
 .home2-account-dropdown > .home2-account-item,
@@ -138,13 +140,13 @@ button, input, textarea { font: inherit; }
 .home2-account-dropdown .home2-plan-item { background: #0f172a; }
 .home2-plan-item > svg { position: absolute; top: 10px; left: 9px; width: 16px; height: 16px; color: #94a3b8; filter: brightness(0) saturate(100%) invert(65%) sepia(10%) saturate(731%) hue-rotate(174deg) brightness(88%); }
 .home2-plan-info { position: static; display: block !important; min-width: 0; width: auto; flex: none; }
-.home2-plan-info strong { position: absolute; top: 12px; left: 36px; display: block; width: 146px; overflow: hidden; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: #f8fafc; font: 400 14px/15px var(--font-body); text-overflow: ellipsis; white-space: nowrap; }
-.home2-plan-info small { position: absolute; top: 42px; left: 32px; display: block; color: #94a3b8; font: 400 14px/15px var(--font-body); white-space: nowrap; }
+.home2-plan-info strong { position: absolute; top: 12px; left: 36px; display: block; width: 146px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--color-ink); font: 500 13px/1 var(--font-body); white-space: nowrap; }
+.home2-plan-info small { position: absolute; top: 42px; left: 36px; display: block; color: #94a3b8; font: 400 12px/14px var(--font-body); white-space: nowrap; }
 .home2-plan-item .home2-account-upgrade { position: absolute; top: 38px; right: 8px; width: 69px; height: 19px; min-height: 19px; margin: 0; padding: 0; border: 1px solid #334155; border-radius: var(--radius-control); background: #1e293b; color: #f8fafc; font: 400 10px/17px var(--font-body); text-align: center; }
 .home2-account-dropdown > .home2-account-item:hover:not(.home2-plan-item),
 .home2-account-dropdown > .home2-promo-trigger:hover { background: #f1f5f9; }
 .home2-account-dropdown .home2-account-divider { height: 1px; margin: 8px 0; background: #f1f5f9; }
-.home2-account-summary { display: flex; gap: 8px; margin: 8px; padding: 8px; border-radius: var(--radius-control); background: var(--color-surface); }
+.home2-account-summary { display: flex; gap: 8px; margin: 8px; padding: 8px; border-radius: var(--radius-control); background: transparent; }
 .home2-account-avatar { width: 32px; height: 32px; flex: 0 0 32px; font-size: 12px; box-shadow: none; }
 .home2-account-details { min-width: 0; flex: 1; color: var(--color-ink); font-size: 14px; line-height: 24px; }
 .home2-account-details > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -154,7 +156,7 @@ button, input, textarea { font: inherit; }
 .home2-account-item { display: flex; width: calc(100% - 16px); height: 40px; align-items: center; justify-content: space-between; margin: 0 8px; padding: 8px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--color-ink); font: 400 14px/24px var(--font-body); text-align: left; cursor: pointer; }
 .home2-account-item:hover { background: var(--color-surface); }
 .home2-account-item span { display: inline-flex; align-items: center; gap: 8px; }
-.home2-account-item strong { display: inline-flex; height: 20px; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: #e2e8f0; color: var(--color-ink); font: 400 10px/14px var(--font-body); }
+.home2-account-item strong { display: inline-flex; height: 20px; align-items: center; color: #ffffff; font: 400 14px/16px var(--font-body); }
 .home2-account-divider { height: 1px; margin: 8px 16px; background: var(--color-border); }
 .home2-promo-trigger { display: flex; width: calc(100% - 16px); min-height: 40px; align-items: center; gap: 8px; margin: 0 8px; padding: 8px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--color-ink); font: 500 13px/1 var(--font-body); text-align: left; cursor: pointer; }
 .home2-promo-trigger:hover { background: var(--color-surface); }
@@ -264,7 +266,7 @@ button, input, textarea { font: inherit; }
 .home2-generation-update-close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
 @media (max-width: 640px) {
   .home2-avatar-button { width: 44px; height: 44px; }
-  .home2-account-summary-header .home2-account-avatar { width: 44px; height: 44px; flex-basis: 44px; }
+  .home2-account-summary-header .home2-account-avatar { width: 40px; height: 40px; max-width: 40px; max-height: 40px; flex-basis: 40px; }
   .home2-account-dropdown { right: -4px; width: min(236px, calc(100vw - 24px)); }
   .home2-join-beta-button span { display: none; }
   .home2-join-beta-button { width: 40px; padding: 8px; }
