@@ -33,6 +33,7 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
   const [resendAvailableAt, setResendAvailableAt] = useState(0)
 
   const emailRedirectTo = `${window.location.origin}/signup`
+  const googleRedirectTo = `${window.location.origin}/`
   const resendCooldownMs = 60_000
   const canResendConfirmation = Date.now() >= resendAvailableAt
 
@@ -154,7 +155,7 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
 
       const { error: signInError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
+        options: { redirectTo: googleRedirectTo },
       })
 
       if (signInError) setError(signInError.message)

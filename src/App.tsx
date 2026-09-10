@@ -50,23 +50,7 @@ function App() {
       || hashParams.get('type') === 'signup'
       || hashParams.get('type') === 'email'
       || hashParams.has('access_token')
-    const isOAuthCallbackOnAppRoute = queryParams.has('code') && window.location.pathname !== '/signup'
-
-    // Google OAuth can return to the home route, where LoginOverlay is not
-    // mounted. Exchange the PKCE code here so the callback works globally.
-    if (isOAuthCallbackOnAppRoute) {
-      void supabase.auth.exchangeCodeForSession(queryParams.get('code')!).then(({ error }) => {
-        if (error) throw error
-        window.history.replaceState({}, '', window.location.pathname)
-        return getCurrentUser()
-      }).then((currentUser) => {
-        userIdRef.current = currentUser?.id ?? null
-        setUser(currentUser)
-      }).catch(() => {
-        userIdRef.current = null
-        setUser(null)
-      })
-    } else if (isSignupConfirmationCallback) {
+    if (isSignupConfirmationCallback) {
       // The signup overlay owns email confirmation callbacks.
       userIdRef.current = null
       setUser(null)
