@@ -34,7 +34,7 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
 
   // Use the public site URL for auth callbacks in production. Falling back to
   // window.location.origin keeps local development working as before.
-  const authSiteUrl = (import.meta.env.VITE_SITE_URL?.trim() || (import.meta.env.PROD ? 'https://slora.art' : window.location.origin)).replace(/\/$/, '')
+  const authSiteUrl = (import.meta.env.VITE_SITE_URL?.trim() || (import.meta.env.PROD ? 'https://www.slora.art' : window.location.origin)).replace(/\/$/, '')
   const emailRedirectTo = `${authSiteUrl}/signup`
   const googleRedirectTo = `${authSiteUrl}/`
   const resendCooldownMs = 60_000
