@@ -1003,13 +1003,14 @@ button, input, textarea { font: inherit; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-input { min-height: 120px; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-suggestions { min-width: 0; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-suggestions-heading { margin-bottom: -4px; }
-.magic-prompt-card.has-custom-prompt .magic-prompt-inline-list { display: flex; flex-wrap: nowrap; align-items: center; overflow-x: auto; overscroll-behavior-inline: contain; padding: 1px 2px 8px; scroll-snap-type: inline proximity; scrollbar-width: thin; }
-.magic-prompt-card.has-custom-prompt .magic-prompt-inline-list > button { flex: 0 0 auto; scroll-snap-align: start; }
+.magic-prompt-card.has-custom-prompt .magic-prompt-inline-list { padding: 1px 2px 8px; scrollbar-width: thin; }
+.magic-prompt-card.has-custom-prompt .magic-prompt-inline-list > button { flex: 0 0 auto; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-show-all { width: auto; min-width: max-content; border-style: dashed !important; }
 .magic-prompt-suggestions-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .magic-prompt-suggestions-heading small { color: var(--color-muted); font: 400 11px/1.2 var(--font-body); white-space: nowrap; }
 .magic-prompt-suggestion-list { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; max-height: 252px; overflow-y: auto; padding: 1px; scrollbar-width: thin; }
-.magic-prompt-inline-list { max-height: none; }
+.magic-prompt-inline-list { flex-direction: column; flex-wrap: nowrap; align-items: stretch; max-height: none; overflow-y: auto; }
+.magic-prompt-inline-list > button { width: 100%; text-align: left; }
 .magic-prompt-suggestions button { flex: 0 0 auto; min-height: 32px; padding: 8px 10px; border: 1px solid rgba(15, 23, 42, .14); border-radius: var(--radius-control); background: rgba(255, 255, 255, .86); color: var(--color-muted); font: 600 10px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease; }
 .magic-prompt-suggestions button:hover, .magic-prompt-suggestions button:focus-visible, .magic-prompt-suggestions button.is-selected { border-color: var(--color-ink); background: var(--color-ink); color: #fff; outline: none; }
 .magic-prompt-suggestions button:hover { transform: translateY(-1px); }
@@ -1023,7 +1024,7 @@ button, input, textarea { font: inherit; }
 .magic-prompt-ideas-header span { font: 600 12px/1.2 var(--font-body); letter-spacing: .14em; text-transform: uppercase; }
 .magic-prompt-ideas-header small { color: var(--color-muted); font: 400 12px/1.4 var(--font-body); }
 .magic-prompt-ideas-header button { display: grid; width: 32px; min-height: 32px; place-items: center; padding: 0; border-radius: 50%; font-size: 22px; font-weight: 300; line-height: 1; }
-.magic-prompt-ideas-popover .magic-prompt-suggestion-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; max-height: none; padding: 2px; overflow-y: auto; }
+.magic-prompt-ideas-popover .magic-prompt-suggestion-list { align-content: start; max-height: none; padding: 2px; overflow-y: auto; }
 .magic-prompt-ideas-popover .magic-prompt-suggestion-list button { min-height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 @media (max-width: 480px) {
   .app-popup { padding: 8px; }

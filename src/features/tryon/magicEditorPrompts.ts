@@ -29,6 +29,17 @@ const MAGIC_EDITOR_PROMPTS: MagicEditorPrompt[] = [
   { id: 'movie-poster', label: 'Movie Poster', prompt: `Transform the photograph into a dramatic cinematic movie-poster visual. Introduce atmospheric lighting, strong depth, controlled contrast and cinematic color grading while keeping the person's identity and pose exactly unchanged. Do not add text.` },
   { id: 'cyberpunk', label: 'Cyberpunk', prompt: `Transform the environment into a sophisticated futuristic cyberpunk city with neon architecture, atmospheric depth and realistic colored light reflections. Keep the model photorealistic and completely recognizable.` },
   { id: 'dreamy-fantasy', label: 'Dreamy Fantasy', prompt: `Transform the surrounding environment into an elegant dreamy fantasy scene with soft atmospheric light, subtle glowing particles, beautiful depth and cinematic softness. Keep the person realistic rather than turning them into an illustration.` },
+  { id: 'remove-clothing', label: 'Remove Outer Clothing', prompt: `Remove the model's outer clothing while preserving the person's identity exactly.
+
+Keep the original face, eyes, hairstyle, facial expression, body shape, body proportions, skin tone, hands, fingers, legs, feet, pose, camera angle, lighting, shadows and background completely unchanged.
+
+Preserve realistic body contours, natural skin transitions, accurate lighting and seamless editing.
+
+Do not modify the person's identity or posture.
+
+The image should maintain a natural, non-explicit appearance with realistic skin texture and no editing artifacts.
+
+Ultra photorealistic, high detail, clean editing, natural appearance.` },
 ]
 
 function getMagicEditorPrompt(prompt: MagicEditorPrompt) {

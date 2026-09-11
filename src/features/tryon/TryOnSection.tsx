@@ -44,6 +44,13 @@ function TryOnUploadCard({ label, samples, previewUrl, isUploading, onFileChange
 function MagicPromptCard({ prompt, onPromptChange, canWriteCustomPrompt, showSuggestions }: { prompt: string; onPromptChange: (prompt: string) => void; canWriteCustomPrompt: boolean; showSuggestions: boolean }) {
   const [isIdeasOpen, setIsIdeasOpen] = useState(false)
   const visibleSuggestions = canWriteCustomPrompt ? MAGIC_EDITOR_PROMPTS : MAGIC_EDITOR_PROMPTS.slice(0, 6)
+  const orderedSuggestions = prompt
+    ? [...MAGIC_EDITOR_PROMPTS].sort((first, second) => {
+        const firstIsSelected = getMagicEditorPrompt(first) === prompt
+        const secondIsSelected = getMagicEditorPrompt(second) === prompt
+        return Number(secondIsSelected) - Number(firstIsSelected)
+      })
+    : MAGIC_EDITOR_PROMPTS
   const selectSuggestion = (suggestion: typeof MAGIC_EDITOR_PROMPTS[number]) => {
     onPromptChange(getMagicEditorPrompt(suggestion))
     setIsIdeasOpen(false)
@@ -68,7 +75,7 @@ function MagicPromptCard({ prompt, onPromptChange, canWriteCustomPrompt, showSug
         <button type="button" className="magic-prompt-show-all" aria-expanded={isIdeasOpen} aria-controls="magic-prompt-ideas-dialog" onClick={() => setIsIdeasOpen(true)}>Show all ideas</button>
       </div>
       <Popup open={isIdeasOpen} title="All ideas" description={`${MAGIC_EDITOR_PROMPTS.length} edit styles`} onClose={() => setIsIdeasOpen(false)} className="app-popup-template magic-prompt-ideas-popup">
-          <div className="magic-prompt-suggestion-list">{MAGIC_EDITOR_PROMPTS.map((suggestion) => {
+          <div className="magic-prompt-suggestion-list magic-prompt-inline-list">{orderedSuggestions.map((suggestion) => {
             const suggestionPrompt = getMagicEditorPrompt(suggestion)
             return <button key={suggestion.id} type="button" className={prompt === suggestionPrompt ? 'is-selected' : ''} aria-pressed={prompt === suggestionPrompt} onClick={() => selectSuggestion(suggestion)}>{suggestion.label}</button>
           })}</div>
