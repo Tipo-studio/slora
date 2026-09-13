@@ -1005,12 +1005,27 @@ button, input, textarea { font: inherit; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-suggestions-heading { margin-bottom: -4px; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-inline-list { padding: 1px 2px 8px; scrollbar-width: thin; }
 .magic-prompt-card.has-custom-prompt .magic-prompt-inline-list > button { flex: 0 0 auto; }
-.magic-prompt-card.has-custom-prompt .magic-prompt-show-all { width: auto; min-width: max-content; border-style: dashed !important; }
+.magic-prompt-card.has-custom-prompt .magic-prompt-show-all { width: 100%; min-width: 0; border-style: dashed !important; }
 .magic-prompt-suggestions-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .magic-prompt-suggestions-heading small { color: var(--color-muted); font: 400 11px/1.2 var(--font-body); white-space: nowrap; }
 .magic-prompt-suggestion-list { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; max-height: 252px; overflow-y: auto; padding: 1px; scrollbar-width: thin; }
 .magic-prompt-inline-list { flex-direction: column; flex-wrap: nowrap; align-items: stretch; max-height: none; overflow-y: auto; }
-.magic-prompt-inline-list > button { width: 100%; text-align: left; }
+.magic-prompt-inline-list > button {
+  width: 100%;
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 8px 10px;
+  border: 1px solid rgba(15, 23, 42, .14);
+  border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, .86);
+  color: var(--color-muted);
+  font: 600 10px / 1 var(--font-body);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+  text-align: left;
+}
 .magic-prompt-suggestions button { flex: 0 0 auto; min-height: 32px; padding: 8px 10px; border: 1px solid rgba(15, 23, 42, .14); border-radius: var(--radius-control); background: rgba(255, 255, 255, .86); color: var(--color-muted); font: 600 10px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease; }
 .magic-prompt-suggestions button:hover, .magic-prompt-suggestions button:focus-visible, .magic-prompt-suggestions button.is-selected { border-color: var(--color-ink); background: var(--color-ink); color: #fff; outline: none; }
 .magic-prompt-suggestions button:hover { transform: translateY(-1px); }

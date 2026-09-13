@@ -44,6 +44,10 @@ function TryOnUploadCard({ label, samples, previewUrl, isUploading, onFileChange
 function MagicPromptCard({ prompt, onPromptChange, canWriteCustomPrompt, showSuggestions }: { prompt: string; onPromptChange: (prompt: string) => void; canWriteCustomPrompt: boolean; showSuggestions: boolean }) {
   const [isIdeasOpen, setIsIdeasOpen] = useState(false)
   const visibleSuggestions = canWriteCustomPrompt ? MAGIC_EDITOR_PROMPTS : MAGIC_EDITOR_PROMPTS.slice(0, 6)
+  const selectedSuggestion = prompt
+    ? MAGIC_EDITOR_PROMPTS.find((suggestion) => getMagicEditorPrompt(suggestion) === prompt)
+    : undefined
+  const selectedSuggestions = selectedSuggestion ? [selectedSuggestion] : visibleSuggestions
   const orderedSuggestions = prompt
     ? [...MAGIC_EDITOR_PROMPTS].sort((first, second) => {
         const firstIsSelected = getMagicEditorPrompt(first) === prompt
@@ -68,7 +72,7 @@ function MagicPromptCard({ prompt, onPromptChange, canWriteCustomPrompt, showSug
     {showSuggestions && <div className="magic-prompt-suggestions" aria-label="Magic Editor prompt suggestions">
       <div className="magic-prompt-suggestions-heading"><span>{canWriteCustomPrompt ? 'Quick ideas' : 'Choose an edit style'}</span>{!canWriteCustomPrompt && <small>Studio unlocks custom prompts</small>}</div>
       <div className="magic-prompt-suggestion-list magic-prompt-inline-list">
-        {visibleSuggestions.map((suggestion) => {
+        {selectedSuggestions.map((suggestion) => {
           const suggestionPrompt = getMagicEditorPrompt(suggestion)
           return <button key={suggestion.id} type="button" className={prompt === suggestionPrompt ? 'is-selected' : ''} aria-pressed={prompt === suggestionPrompt} onClick={() => selectSuggestion(suggestion)}>{suggestion.label}</button>
         })}
@@ -482,8 +486,8 @@ function TryOnSection({ sectionRef, user, onRequestLogin, onOpenAccount, onOpenP
     link.remove()
   }
 
-  const personSamples = ['/images/tryon/person-1.png', '/images/tryon/person-2.png', '/images/tryon/person-3.png', '/images/tryon/person-4.png'] as const
-  const clothesSamples = ['/images/tryon/clothes-1.png', '/images/tryon/clothes-2.png', '/images/tryon/clothes-3.png', '/images/tryon/clothes-4.png'] as const
+  const personSamples = ['/images/tryon/user-samples/person-1.jpg', '/images/tryon/user-samples/person-2.jpg', '/images/tryon/user-samples/person-3.jpg', '/images/tryon/user-samples/person-4.png'] as const
+  const clothesSamples = ['/images/tryon/user-samples/clothes-1.png', '/images/tryon/user-samples/clothes-2.jpg', '/images/tryon/user-samples/clothes-3.jpg', '/images/tryon/user-samples/clothes-4.jpg'] as const
   const loadingPreviewUrl = personPreviewUrl ?? clothesPreviewUrl
   const toolUsesImages = toolDefinition?.inputSchema.fields.some((field) => field.type === 'image' && !field.hidden)
   const toolUsesPrompt = toolDefinition?.inputSchema.fields.some((field) => (field.type === 'text' || field.type === 'textarea') && !field.hidden)
