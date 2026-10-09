@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { CircleUserRound, Gift, Images, LogOut, UserRound } from 'lucide-react'
+import { CircleUserRound, Images, LogOut, Send, UserRound } from 'lucide-react'
 import { GenerationIcon } from './ui/GenerationIcon'
 
 import { LoginOverlay } from '../features/auth/LoginOverlay'
@@ -27,20 +27,12 @@ export type SiteHeaderProps = {
 }
 
 
-function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction, onOpenPaywall, user, onSignOut, onAuthenticated, onLogoClick }: SiteHeaderProps) {
+function SiteHeader({ onOpenLibrary, onOpenAccount, onOpenFunction, onOpenPaywall, user, onSignOut, onAuthenticated, onLogoClick }: SiteHeaderProps) {
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
-  const [hasSubmittedJoinBeta, setHasSubmittedJoinBeta] = useState(() => window.localStorage.getItem('join-beta-submitted') === 'true')
-
   const accountMenuRef = useRef<HTMLDivElement>(null)
   const isAuthenticatedUser = Boolean(user && !user.is_anonymous)
-
-  useEffect(() => {
-    const refreshJoinBetaStatus = () => setHasSubmittedJoinBeta(window.localStorage.getItem('join-beta-submitted') === 'true')
-    window.addEventListener('join-beta-submitted', refreshJoinBetaStatus)
-    return () => window.removeEventListener('join-beta-submitted', refreshJoinBetaStatus)
-  }, [])
 
   useEffect(() => {
     if (!isAuthenticatedUser) return
@@ -97,7 +89,7 @@ function SiteHeader({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFuncti
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
       </button>
       <nav aria-label="Main navigation" className="home2-header-nav flex items-center font-medium uppercase tracking-[.2em]" style={{ gap: 'var(--gap-nav)', fontSize: 'var(--nav)' }}>
-        {!hasSubmittedJoinBeta && <button type="button" onClick={onOpenJoinBeta} className="home2-join-beta-button" aria-label="Get free code"><Gift size={20} strokeWidth={1.5} aria-hidden="true" /><span>GET FREE CODE</span></button>}
+        <a href="https://t.me/sloraart" target="_blank" rel="noopener noreferrer" className="home2-join-beta-button" aria-label="Join Slora on Telegram"><Send size={20} strokeWidth={1.5} aria-hidden="true" /><span>JOIN TELEGRAM</span></a>
         {isAuthenticatedUser && user ? (
           <div ref={accountMenuRef} className="home2-account-menu">
             <button type="button" className="home2-account-summary home2-account-summary-header" aria-label="Open account menu" aria-expanded={isAccountMenuOpen} aria-haspopup="menu" onClick={() => setIsAccountMenuOpen((isOpen) => !isOpen)}>

@@ -24,7 +24,7 @@ function PaywallPage({ onBack, user, onRequestLogin, ...headerProps }: PaywallPa
     {generationBalance !== null && <p className="paywall-purchase-message" role="status">Generation balance: {generationBalance}</p>}
     <section className="paywall-telegram" aria-label="Join Telegram">
       <p>Join our Telegram group for updates and community support.</p>
-      <a href="https://t.me/+C2KlUUf0MuljYWM1" target="_blank" rel="noreferrer">Join Telegram</a>
+      <a href="https://t.me/sloraart" target="_blank" rel="noopener noreferrer">Join Telegram</a>
     </section>
   </main>
 }
