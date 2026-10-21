@@ -20,23 +20,14 @@ const MAGIC_EDITOR_PROMPTS: MagicEditorPrompt[] = [
 
 
 { id: 'Magic Remove', label: 'Magic remove', prompt: `Remove all clothing from the model while preserving the person's identity exactly.
-
 Keep the exact same face, facial geometry, head shape, hairstyle, hairline, facial expression, eye direction, skin tone, skin texture, body shape, body proportions, shoulder width, bust position, waist, hips, torso length, arm length, hand shape, finger proportions, leg length, thigh shape, calf shape, ankle size and foot size exactly unchanged.
-
 Keep the exact same pose, head tilt, neck angle, shoulder angle, torso angle, hip position, arm position, elbow angle, wrist position, finger pose, leg position, knee angle, foot placement and body balance exactly unchanged.
-
 Keep the exact same camera angle, camera height, camera distance, focal length, framing, composition, perspective, lighting direction, shadows, highlights and background exactly unchanged.
-
 Cleanly remove only the garments without leaving clothing remnants, seams, wrinkles, logos, accessories or editing artifacts.
-
 Naturally reconstruct all previously covered body regions with realistic anatomy, smooth skin texture, seamless transitions, consistent lighting and accurate body proportions. Preserve realistic muscle definition, natural body contours, natural body hair where appropriate, and seamless skin continuity.beauty nipples. beauty breast, beauty pussy,crotch,Stubble,Pubic Hair
-
 Do not modify the person's identity, anatomy, body proportions, posture, pose, camera perspective or lighting.
-
 The result should look like a professionally edited commercial fashion studio photograph with ultra realistic anatomy, realistic skin texture, accurate lighting, clean editing and no visible artifacts.
-
 Ultra photorealistic, commercial fashion photography, premium editorial quality, extremely high detail, physically accurate lighting, realistic skin texture, natural appearance.`}
-
   { id: 'luxury-fashion', label: 'Luxury Fashion', prompt: `Replace only the model's outfit with an elegant luxury fashion look. Use premium fabrics, sophisticated tailoring and refined styling. Keep the result photorealistic with natural fabric folds, shadows and accurate interaction with the body.` },
   { id: 'trendy-streetwear', label: 'Trendy Streetwear', prompt: `Replace only the clothing with modern trending streetwear. Create a stylish everyday look with layered pieces, contemporary proportions and realistic materials. Preserve all original accessories unless they conflict with the new clothing.` },
   { id: 'summer-vacation', label: 'Summer Vacation', prompt: `Transform the styling into a premium summer vacation look. Replace the outfit with elegant resort wear and change the environment into a bright tropical destination. Match environmental lighting naturally to the subject.` },
