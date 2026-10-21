@@ -5,16 +5,7 @@ type MagicEditorPrompt = {
 }
 
 const GLOBAL_IDENTITY_LOCK = `GLOBAL IDENTITY LOCK — Apply to every prompt
-
-Keep the exact same face, facial geometry, head shape, hairstyle, hairline, facial expression, eye direction, skin tone, skin texture, body shape, body proportions, shoulder width, torso length, arm length, hand shape, finger proportions, leg length, thigh shape, calf shape, ankle size and foot size exactly unchanged.
-
-Keep the exact same pose, head tilt, neck angle, shoulder angle, torso angle, hip position, arm position, elbow angle, wrist position, finger pose, leg position, knee angle, foot placement and body balance exactly unchanged.
-
-Keep the exact same camera angle, camera height, camera distance, focal length, framing, composition and perspective exactly unchanged. Preserve the original lighting direction, shadows, highlights and background unless the selected edit below explicitly requests changing one of those elements.
-
-Do not modify the person's identity, anatomy, body proportions, posture, pose or camera perspective. Only modify the elements explicitly requested below. The person must remain clearly recognizable as the exact same individual.
-
-Produce a professionally edited commercial fashion photograph with ultra-realistic anatomy, realistic skin texture, accurate lighting, clean seamless editing and no visible artifacts. Premium editorial quality, extremely high detail, physically accurate lighting and a natural photorealistic appearance.`
+Keep the exact same face, facial geometry, head shape, hairstyle, hairline, facial expression, eye direction, skin tone, skin texture, body shape, body proportions, shoulder width, torso length, arm length, hand shape, finger proportions, leg length, thigh shape, calf shape, ankle size and foot size exactly unchanged. Keep the exact same pose, head tilt, neck angle, shoulder angle, torso angle, hip position, arm position, elbow angle, wrist position, finger pose, leg position, knee angle, foot placement and body balance exactly unchanged. Keep the exact same camera angle, camera height, camera distance, focal length, framing, composition and perspective exactly unchanged. Preserve the original lighting direction, shadows, highlights and background unless the selected edit below explicitly requests changing one of those elements. Do not modify the person's identity, anatomy, body proportions, posture, pose or camera perspective. Only modify the elements explicitly requested below. The person must remain clearly recognizable as the exact same individual. Produce a professionally edited commercial fashion photograph with ultra-realistic anatomy, realistic skin texture, accurate lighting, clean seamless editing and no visible artifacts. Premium editorial quality, extremely high detail, physically accurate lighting and a natural photorealistic appearance.`
 
 const MAGIC_EDITOR_PROMPTS: MagicEditorPrompt[] = [
 
