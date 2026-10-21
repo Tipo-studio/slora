@@ -30,6 +30,37 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabasePublis
   },
 })
 
+type AuthSettings = { external?: Record<string, boolean> }
+
+const AUTH_SETTINGS_CACHE_TTL_MS = 5 * 60_000
+let authSettingsCache: { value: AuthSettings; expiresAt: number } | null = null
+let pendingAuthSettingsRequest: Promise<AuthSettings | null> | null = null
+
+function getAuthSettings() {
+  if (authSettingsCache && authSettingsCache.expiresAt > Date.now()) {
+    return Promise.resolve(authSettingsCache.value)
+  }
+  authSettingsCache = null
+  if (pendingAuthSettingsRequest) return pendingAuthSettingsRequest
+
+  const settingsRequest = fetch(`${supabaseUrl}/auth/v1/settings`, {
+    headers: { apikey: supabasePublishableKey },
+  })
+    .then(async (response) => {
+      if (!response.ok) return null
+      const settings = await response.json() as AuthSettings
+      authSettingsCache = { value: settings, expiresAt: Date.now() + AUTH_SETTINGS_CACHE_TTL_MS }
+      return settings
+    })
+    .catch(() => null)
+
+  const sharedRequest = settingsRequest.finally(() => {
+    if (pendingAuthSettingsRequest === sharedRequest) pendingAuthSettingsRequest = null
+  })
+  pendingAuthSettingsRequest = sharedRequest
+  return sharedRequest
+}
+
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser()
   if (error) throw error
@@ -43,15 +74,6 @@ export async function refreshSupabaseSession() {
 }
 
 export async function isAuthProviderEnabled(provider: string) {
-  try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/settings`, {
-      headers: { apikey: supabasePublishableKey },
-    })
-    if (!response.ok) return null
-
-    const settings = await response.json() as { external?: Record<string, boolean> }
-    return settings.external?.[provider] ?? null
-  } catch {
-    return null
-  }
+  const settings = await getAuthSettings()
+  return settings?.external?.[provider] ?? null
 }

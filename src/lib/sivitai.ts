@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 
 const REQUEST_TIMEOUT_MS = 30_000
+const TOOL_CACHE_TTL_MS = 5 * 60_000
 
 function resolveApiBaseUrl() {
   const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim() || import.meta.env.NEXT_PUBLIC_API_URL?.trim()
@@ -84,6 +85,15 @@ type MyLibraryApiResponse = {
   nextCursor: string | null
 }
 
+type CacheEntry<T> = {
+  value: T
+  expiresAt: number
+}
+
+const toolCache = new Map<string, CacheEntry<ToolDefinition>>()
+const pendingToolRequests = new Map<string, Promise<ToolDefinition>>()
+let pendingBillingSummaryRequest: Promise<BillingSummary> | null = null
+
 // React Strict Mode can initiate parallel API requests before Supabase persists a
 // guest session. Share the sign-in operation so only one anonymous user is created.
 let anonymousSignIn: Promise<string> | null = null
@@ -153,7 +163,23 @@ async function request<T>(path: string, init: RequestInit = {}, auth: 'required'
 }
 
 export function getTool(slug: string) {
-  return request<ToolDefinition>(`/api/tools/${encodeURIComponent(slug)}`)
+  const normalizedSlug = slug.trim()
+  const cached = toolCache.get(normalizedSlug)
+  if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value)
+  if (cached) toolCache.delete(normalizedSlug)
+
+  const pending = pendingToolRequests.get(normalizedSlug)
+  if (pending) return pending
+
+  const toolRequest = request<ToolDefinition>(`/api/tools/${encodeURIComponent(normalizedSlug)}`)
+    .then((tool) => {
+      toolCache.set(normalizedSlug, { value: tool, expiresAt: Date.now() + TOOL_CACHE_TTL_MS })
+      return tool
+    })
+    .finally(() => pendingToolRequests.delete(normalizedSlug))
+
+  pendingToolRequests.set(normalizedSlug, toolRequest)
+  return toolRequest
 }
 
 export type ReferralSummary = {
@@ -272,11 +298,21 @@ function toNonNegativeNumber(value: number | string | null | undefined) {
   return Number.isFinite(parsed) ? Math.max(0, parsed) : null
 }
 
-export async function requestBillingSummary() {
-  const response = await request<BillingSummaryApiResponse>('/api/billing/me', {}, 'required')
-  const balance = toNonNegativeNumber(response.creditBalance ?? response.balance ?? response.creditsRemaining ?? response.credits)
-  if (balance === null) throw new Error('Billing API returned an invalid credit balance.')
-  return { balance, package: response.package ?? response.currentPackage ?? response.activePackage?.productName ?? null } satisfies BillingSummary
+export function requestBillingSummary() {
+  if (pendingBillingSummaryRequest) return pendingBillingSummaryRequest
+
+  const billingRequest = request<BillingSummaryApiResponse>('/api/billing/me', {}, 'required')
+    .then((response) => {
+      const balance = toNonNegativeNumber(response.creditBalance ?? response.balance ?? response.creditsRemaining ?? response.credits)
+      if (balance === null) throw new Error('Billing API returned an invalid credit balance.')
+      return { balance, package: response.package ?? response.currentPackage ?? response.activePackage?.productName ?? null } satisfies BillingSummary
+    })
+
+  const sharedRequest = billingRequest.finally(() => {
+    if (pendingBillingSummaryRequest === sharedRequest) pendingBillingSummaryRequest = null
+  })
+  pendingBillingSummaryRequest = sharedRequest
+  return sharedRequest
 }
 
 export function createGeneration(slug: string, inputs: Record<string, unknown>, deviceId: string, freeGeneration: boolean) {
