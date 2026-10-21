@@ -16,6 +16,8 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
   const passwordId = useId()
   const confirmPasswordId = useId()
   const emailInputRef = useRef<HTMLInputElement>(null)
+  const onAuthenticatedRef = useRef(onAuthenticated)
+  const onSignupCompletedRef = useRef(onSignupCompleted)
   const [mode, setMode] = useState<'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password'>(() => {
     if (initialMode === 'sign-up') return 'sign-up'
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
@@ -32,16 +34,25 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
   const [isHandlingAuthCallback, setIsHandlingAuthCallback] = useState(false)
   const [resendAvailableAt, setResendAvailableAt] = useState(0)
 
-  // Use the public site URL for auth callbacks in production. Falling back to
-  // window.location.origin keeps local development working as before.
-  const authSiteUrl = (import.meta.env.VITE_SITE_URL?.trim() || (import.meta.env.PROD ? 'https://www.slora.art' : window.location.origin)).replace(/\/$/, '')
+  // PKCE stores its verifier in origin-scoped browser storage. Always return
+  // to the origin that initiated auth so slora.art and www.slora.art cannot
+  // accidentally split the authorization flow across different storage.
+  const authSiteUrl = window.location.origin.replace(/\/$/, '')
   const emailRedirectTo = `${authSiteUrl}/signup`
   const googleRedirectTo = `${authSiteUrl}/`
   const resendCooldownMs = 60_000
   const canResendConfirmation = Date.now() >= resendAvailableAt
 
-  const clearAuthCallbackUrl = () => {
-    window.history.replaceState({}, '', '/signup')
+  useEffect(() => {
+    onAuthenticatedRef.current = onAuthenticated
+  }, [onAuthenticated])
+
+  useEffect(() => {
+    onSignupCompletedRef.current = onSignupCompleted
+  }, [onSignupCompleted])
+
+  const clearAuthCallbackUrl = (path = '/signup') => {
+    window.history.replaceState({}, '', path)
     window.location.hash = ''
   }
 
@@ -72,26 +83,30 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
 
       setIsHandlingAuthCallback(true)
       resetFeedback()
+      let callbackUrlCleared = false
       try {
-        // PKCE links return a code; the browser client exchanges it and then
-        // exposes the confirmed user through the current session.
-        if (queryParams.has('code')) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(queryParams.get('code')!)
-          if (exchangeError) throw exchangeError
-        }
-
+        // detectSessionInUrl is enabled on the Supabase client. getSession()
+        // waits for that initialization, so exchanging the code again here
+        // would consume the same PKCE verifier twice.
         const { data, error: sessionError } = await supabase.auth.getSession()
         if (sessionError) throw sessionError
         if (data.session?.user) {
           const confirmedUser = data.session.user
           setEmail(confirmedUser.email ?? '')
+          const provider = confirmedUser.app_metadata.provider
+          if (provider && provider !== 'email') {
+            clearAuthCallbackUrl('/')
+            callbackUrlCleared = true
+            onAuthenticatedRef.current(confirmedUser)
+            return
+          }
           // Confirmation proves the email, but does not automatically sign the
           // user into the app. The user must complete the normal sign-in step.
           await supabase.auth.signOut()
           setMode('sign-in')
           setIsConfirmationPending(false)
           setMessage('Email confirmed successfully. Your account is ready. Please sign in to continue.')
-          onSignupCompleted?.()
+          onSignupCompletedRef.current?.()
         } else {
           setMode('sign-in')
           setMessage('Your confirmation link is invalid or has expired. Please request a new one.')
@@ -102,7 +117,7 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
       } finally {
         if (isMounted) {
           setIsHandlingAuthCallback(false)
-          clearAuthCallbackUrl()
+          if (!callbackUrlCleared) clearAuthCallbackUrl()
         }
       }
     }
@@ -226,14 +241,30 @@ function LoginOverlay({ onClose, onAuthenticated, onSignupCompleted, initialMode
           setError('Passwords do not match.')
           return
         }
+        const normalizedEmail = email.trim().toLowerCase()
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: { emailRedirectTo: emailRedirectTo },
         })
 
         if (signUpError) {
-          setError(signUpError.message)
+          const normalizedError = signUpError.message.toLowerCase()
+          if (normalizedError.includes('already registered') || normalizedError.includes('already exists')) {
+            setMode('sign-in')
+            setPassword('')
+            setConfirmPassword('')
+            setMessage('This email is already registered. Please sign in with your password or Google.')
+          } else {
+            setError(signUpError.message)
+          }
+        } else if (data.user && data.user.identities?.length === 0) {
+          // Supabase returns an empty identities array when the email already
+          // belongs to an existing Auth user (including a Google account).
+          setMode('sign-in')
+          setPassword('')
+          setConfirmPassword('')
+          setMessage('This email is already registered. Please sign in with your password or Google.')
         } else {
           // Never create an app session directly after signup. The user must
           // confirm the email first, then return and sign in manually.
