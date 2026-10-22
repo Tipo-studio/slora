@@ -253,11 +253,19 @@ export type PromoRedemptionResponse = {
   package: string | null
 }
 
+const TEST_PROMO_CODE = 'TEST@123'
+const TEST_PROMO_INTERNAL_CODE = 'TEST_123'
+
 export function redeemPromoCode(code: string) {
+  const normalizedCode = code.trim().toUpperCase()
+  const apiCode = normalizedCode === TEST_PROMO_CODE ? TEST_PROMO_INTERNAL_CODE : normalizedCode
+
   return request<PromoRedemptionResponse>('/api/promotions/redeem', {
     method: 'POST',
-    body: JSON.stringify({ code: code.trim().toUpperCase() }),
-  }, 'required')
+    body: JSON.stringify({ code: apiCode }),
+  }, 'required').then((response) => response.code === TEST_PROMO_INTERNAL_CODE
+    ? { ...response, code: TEST_PROMO_CODE }
+    : response)
 }
 
 export type JoinBetaSubmission = {
