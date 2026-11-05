@@ -290,8 +290,8 @@ button, input, textarea { font: inherit; }
 .home2-hero { justify-content: flex-start; }
 .home2-hero-copy { width: min(541px, 82vw); margin: 0 0 132px; }
 .home2-hero-logo { max-width: 541px; }
-.home2-hero-description { width: min(449px, 100%); margin: 0; color: #080d14; font: 300 16px/24px var(--font-body); letter-spacing: 0; }
-.home2-hero-cta { display: inline-flex; width: 147px; height: 43px; align-items: center; justify-content: space-between; gap: 12px; margin-top: 0; padding: 9px 19px; border: 0; border-radius: 0; background: #0b0b0b; color: #fbfbfb; font: 400 16px/24px var(--font-display); cursor: pointer; transition: background-color .2s ease; }
+.home2-hero-description { width: min(449px, 100%); margin: 40px 0 0; color: #080d14; font: 300 16px/24px var(--font-body); letter-spacing: 0; }
+.home2-hero-cta { display: inline-flex; width: 147px; height: 43px; align-items: center; justify-content: space-between; gap: 12px; margin-top: 40px; padding: 9px 19px; border: 0; border-radius: 0; background: #0b0b0b; color: #fbfbfb; font: 400 16px/24px var(--font-display); cursor: pointer; transition: background-color .2s ease; }
 .home2-hero-cta:hover { background: #303030; }
 .home2-hero-cta:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
 .home2-hero-cta img { display: block; width: 26px; height: 23px; flex: 0 0 26px; max-width: none; object-fit: contain; opacity: 1; filter: brightness(0) invert(1); }
