@@ -90,7 +90,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
     }
   }, [isAccountMenuOpen])
 
-  return <div className="font-jakarta relative flex min-h-screen flex-col justify-between overflow-x-clip bg-white text-black">
+  return <div className="home-page font-jakarta relative flex min-h-screen flex-col justify-between overflow-x-clip bg-white text-black">
     <ImageRevealBackground />
 
     <header className={`home2-header fixed inset-x-0 top-0 z-[60] flex items-center justify-between${isHeaderScrolled ? ' is-scrolled' : ''}`} style={{ paddingInline: 'var(--pad-x)', paddingTop: 'var(--header-pt)', paddingBottom: 'var(--header-pb)' }}>

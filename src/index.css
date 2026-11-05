@@ -68,6 +68,7 @@ html {
   scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
 }
+html:has(.home-page) { scroll-snap-type: none; }
 body, #root { min-height: 100%; }
 body { overflow-x: hidden; }
 #hero-section, .core-functions-screen, .tryon-screen {
