@@ -104,11 +104,21 @@ button, input, textarea { font: inherit; }
 .button-secondary > img[src="/images/hero-button-arrow.svg"] { width: 44px; height: 38px; flex: 0 0 auto; }
 .button-primary > img.hero-button-arrow-light { filter: invert(1); }
 .home2-header {
+  position: fixed;
+  z-index: 60;
   min-height: 72px;
   background: transparent;
   border-bottom: 0;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, backdrop-filter .2s ease;
+}
+.home2-header.is-scrolled {
+  background: rgba(255, 255, 255, .98);
+  border-bottom: 1px solid rgba(148, 163, 184, .2);
+  box-shadow: 0 4px 16px rgba(8, 13, 20, .06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .home2-join-beta-button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 8px; padding: 8px 0; border: 0; background: transparent; color: var(--color-ink); font: 600 14px/1.65 var(--font-body); letter-spacing: .18em; text-transform: uppercase; cursor: pointer; transition: color .2s ease, opacity .2s ease; }
 .home2-join-beta-button:hover, .home2-join-beta-button.is-current { color: #c2410c; }

@@ -25,6 +25,7 @@ function scrollToSection(section: HTMLElement | null) {
 function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction, onOpenPaywall, user, onSignOut, onAuthenticated }: { onOpenJoinBeta: () => void; onOpenLibrary: () => void; onOpenAccount: () => void; onOpenFunction: (tool?: 'try-on' | 'magic-editor') => void; onOpenPaywall: (plan: 'one-time' | 'creator' | 'studio', returnToResult?: boolean) => void; user: User | null; onSignOut: () => Promise<void>; onAuthenticated: (user: User) => void }) {
   const [isLoginOpen, setIsLoginOpen] = useState(() => window.location.hash.includes('type=recovery'))
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false)
   const [freeGenerationsRemaining, setFreeGenerationsRemaining] = useState(0)
   const [currentPackage, setCurrentPackage] = useState<string | null>(null)
   const [promoGenerationUpdate, setPromoGenerationUpdate] = useState<{ granted: number; remaining: number } | null>(null)
@@ -37,6 +38,13 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
 
   useEffect(() => {
     // Creative tools are hosted on the dedicated /function route.
+  }, [])
+
+  useEffect(() => {
+    const updateHeaderScrollState = () => setIsHeaderScrolled(window.scrollY > 8)
+    updateHeaderScrollState()
+    window.addEventListener('scroll', updateHeaderScrollState, { passive: true })
+    return () => window.removeEventListener('scroll', updateHeaderScrollState)
   }, [])
 
   useEffect(() => {
@@ -85,7 +93,7 @@ function HomePage({ onOpenJoinBeta, onOpenLibrary, onOpenAccount, onOpenFunction
   return <div className="font-jakarta relative flex min-h-screen flex-col justify-between overflow-x-clip bg-white text-black">
     <ImageRevealBackground />
 
-    <header className="home2-header absolute inset-x-0 top-0 z-40 flex items-center justify-between" style={{ paddingInline: 'var(--pad-x)', paddingTop: 'var(--header-pt)', paddingBottom: 'var(--header-pb)' }}>
+    <header className={`home2-header fixed inset-x-0 top-0 z-[60] flex items-center justify-between${isHeaderScrolled ? ' is-scrolled' : ''}`} style={{ paddingInline: 'var(--pad-x)', paddingTop: 'var(--header-pt)', paddingBottom: 'var(--header-pb)' }}>
       <a className="transition-opacity hover:opacity-80" href="#hero-section" aria-label="LGPSM home" onClick={(event) => { event.preventDefault(); scrollToSection(document.getElementById('hero-section')) }}>
         <img src="/images/full-logo.svg" alt="LGPSM" className="home2-header-logo block h-auto w-[169px] max-w-[42vw]" />
       </a>
