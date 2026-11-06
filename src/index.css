@@ -288,6 +288,9 @@ button, input, textarea { font: inherit; }
   font-family: 'Poppins', sans-serif;
 }
 .home2-header-logo { object-fit: contain; }
+.home-page { --header-pt: 16px; --header-pb: 16px; }
+.home-page .home2-header { box-sizing: border-box; max-height: 88px; }
+.home-page .home2-account-summary-header { padding-block: 8px; }
 .home2-hero { justify-content: flex-start; }
 .home2-hero-copy { width: min(541px, 82vw); margin: 0 0 132px; }
 .home2-hero-logo { max-width: 541px; }
