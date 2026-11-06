@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { GenerationIcon } from '../ui/GenerationIcon'
 import './home-landing.css'
 
 type GalleryFilter = 'All' | 'Try-on' | 'Editor' | 'AI studio' | 'Lifestyle'
@@ -139,7 +138,7 @@ function HomeLandingSections({ onOpenJoinBeta, onOpenFunction, onOpenPaywall }: 
         <p className="home-eyebrow">Ready to Explore Your Creativity?</p>
         <h2 id="home-closing-title">Everything AI Can Do for<br />Your Photos</h2>
         <p className="home-closing-description">Everything starts with a single photo.</p>
-        <button type="button" className="home-closing-button" onClick={() => onOpenFunction('try-on')}><GenerationIcon size={24} />TRY NOW</button>
+        <button type="button" className="home-closing-button" onClick={() => onOpenFunction('try-on')}><span>Try Now</span><img src="/images/hero-button-arrow.svg" alt="" aria-hidden="true" /></button>
       </div>
       <div className="home-closing-divider" />
     </section>

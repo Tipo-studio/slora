@@ -75,9 +75,10 @@
 .home-closing-content { display: flex; width: min(800px, 100%); flex-direction: column; align-items: center; gap: 32px; align-self: center; text-align: center; }
 .home-closing-content h2 { width: 100%; }
 .home-closing-description { margin: 0; color: #64748b; font: 300 16px/24px var(--font-body); }
-.home-closing-button { display: inline-flex; min-height: 56px; align-items: center; justify-content: center; gap: 8px; padding: 16px 32px; border: 1px solid #e2e8f0; border-radius: 9999px; background: #f1f5f9; box-shadow: 0 3px 3px 1px rgba(2, 8, 13, .08); color: #475569; font: 400 12px/20px var(--font-body); cursor: pointer; transition: background-color .2s ease, transform .2s ease; }
-.home-closing-button:hover { background: #e2e8f0; transform: translateY(-1px); }
+.home-closing-button { display: inline-flex; width: 147px; height: 43px; min-height: 43px; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 19px; border: 0; border-radius: 0; background: #0b0b0b; color: #fbfbfb; font: 400 16px/24px var(--font-display); cursor: pointer; transition: background-color .2s ease; }
+.home-closing-button:hover { background: #303030; }
 .home-closing-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+.home-closing-button img { display: block; width: 26px; height: 23px; flex: 0 0 26px; max-width: none; object-fit: contain; filter: brightness(0) invert(1); }
 .home-closing-divider { height: 1px; background: #e2e8f0; }
 .home-footer { padding: 72px max(32px, calc((100% - 1200px) / 2)) 48px; border-top: 1px solid #e2e8f0; background: white; }
 .home-footer-top { display: flex; justify-content: space-between; gap: 48px; }
